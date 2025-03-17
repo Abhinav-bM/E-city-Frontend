@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "navbar";
+@import "variable";
+@import "common";
+@import "utils";
+
+@theme {
+  --color-primary: var(--primary);
+  --color-textPrimary: var(--text-primary);
+  --color-textSecondary: var(--text-secondary);
+}

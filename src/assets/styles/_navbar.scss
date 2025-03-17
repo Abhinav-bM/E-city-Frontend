@@ -1,0 +1,30 @@
+.header {
+  @apply w-full relative;
+
+  .navbar {
+    @apply w-full flex justify-between items-center py-5;
+
+    .mobile-nav-toggler {
+      @apply flex justify-center items-center md:hidden;
+
+      button {
+        @apply flex-1 p-0 border-none mr-5;
+      }
+    }
+
+    .logo-container {
+      @media screen and (max-width: 768px) {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+
+    .search-area {
+      @apply hidden md:flex w-1/2 relative;
+      input {
+        @apply w-full border border-t-0 border-x-0 border-gray-300 rounded-sm px-4 py-3 focus:outline-none;
+      }
+    }
+  }
+}

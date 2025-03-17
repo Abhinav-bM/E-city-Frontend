@@ -1,0 +1,37 @@
+// Colors
+
+:root {
+  --error: #bc3232;
+  --yellow: #ffbd35;
+  --success: #0d9276;
+
+  // Main
+  --primary: #31473a;
+  --secondary: #fc7300;
+
+  // Background
+
+  // Background
+  --bg-primary: #252525;
+  --bg-primary-smoke: #26282b;
+  --bg-secondary: #30353c;
+  --bg-dark: #3d3b40;
+  --bg-border: #30353c;
+  --bg-footer: var(--bg-secondary);
+
+  // Text
+  --text-primary: #000000;
+  --text-secondary: #ffffff;
+
+  // btn
+  --btn-background: #012953;
+  --btn-black: black;
+  --btn-dark: rgb(35, 34, 34);
+
+  --primary-lighter: color-mix(in srgb, var(--primary), #fff 90%);
+  --primary-lighter2: color-mix(in srgb, var(--primary), #fff 70%);
+}
+
+body {
+  background-color: #edf4f2;
+}

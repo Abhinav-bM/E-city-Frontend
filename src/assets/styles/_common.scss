@@ -1,0 +1,16 @@
+.swiper-shop {
+  .swiper-button-prev,
+  .swiper-button-next {
+    @apply w-10 h-10 text-white bg-gray-500 transition-all duration-300 ease-in-out;
+    &:hover {
+      @apply bg-gray-700;
+    }
+  }
+
+  /* Reduce Swiper Arrow Icon Size */
+  .swiper-button-prev::after,
+  .swiper-button-next::after {
+    font-size: 16px;
+    color: white;
+  }
+}
