@@ -32,7 +32,7 @@ const productSlice = createSlice({
 
 // Fetch
 export const fetchProducts = (filter) => {
-  return async (dispatch, getState) => {
+  return async (dispatch) => {
     dispatch(fetchProductsStart(filter.page === 1));
 
     try {

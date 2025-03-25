@@ -11,7 +11,6 @@ const ShopPage = () => {
   const dispatch = useAppDispatch();
   const products = useAppSelector(selectProduct);
 
-  console.log("products : ", products);
   const searchParams = useSearchParams();
   const router = useRouter();
 

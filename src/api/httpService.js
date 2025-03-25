@@ -1,5 +1,7 @@
+// Create Axios instance with conditional environment variable access
 import axios from "axios";
 
+// Safely access environment variables
 
 // Create Axios instance
 const axiosInstance = axios.create({
@@ -33,7 +35,10 @@ axiosInstance.interceptors.response.use(
         console.error("Unauthorized! Redirect to login.");
         // Handle logout or redirect to login page if needed
       } else {
-        console.error("API Error:", error.response.data.message);
+        console.error(
+          "API Error:",
+          error.response?.data?.message || "Unknown error"
+        );
       }
     } else {
       console.error("Network error:", error.message);
