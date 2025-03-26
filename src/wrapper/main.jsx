@@ -3,7 +3,7 @@ import Navbar from "@/components/navbar";
 import "@/assets/styles/styles.scss";
 import React, { Fragment } from "react";
 
-const main = ({ children }) => {
+const Mainwrapper = ({ children }) => {
   return (
     <Fragment>
       <Navbar />
@@ -13,4 +13,4 @@ const main = ({ children }) => {
   );
 };
 
-export default main;
+export default Mainwrapper;

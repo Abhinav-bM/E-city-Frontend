@@ -1,10 +1,11 @@
+import Mainwrapper from "@/wrapper/main";
 import React from "react";
 
 const page = () => {
   return (
-    <main>
+    <Mainwrapper>
       <h1>Welcome to cart</h1>
-    </main>
+    </Mainwrapper>
   );
 };
 

@@ -1,11 +1,15 @@
 import AccountSettings from "@/components/userProfile";
+import Authwrapper from "@/wrapper/auth";
+import Mainwrapper from "@/wrapper/main";
 import React from "react";
 
 const page = () => {
   return (
-    <main>
-      <AccountSettings />
-    </main>
+    <Mainwrapper>
+      <Authwrapper>
+        <AccountSettings />
+      </Authwrapper>
+    </Mainwrapper>
   );
 };
 
