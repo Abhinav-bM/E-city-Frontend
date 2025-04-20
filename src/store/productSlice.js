@@ -41,8 +41,8 @@ export const fetchProducts = (filter) => {
         const { data } = response.data;
         dispatch(
           fetchProductsSuccess({
-            filter,
-            products: data,
+            filter: data.pagination,
+            products: data.products,
           })
         );
       }

@@ -28,7 +28,7 @@ const page = async ({ params }) => {
           <h1 className="text-2xl  md:text-3xl font-normal">{product.name}</h1>
           <ProductVariantSelector product={product} />
 
-          <CheckoutContainer product={product} />
+          {/* <CheckoutContainer product={product} /> */}
 
           <div className=" my-5">
             <h6 className=" font-semibold mb-2">Product Description</h6>

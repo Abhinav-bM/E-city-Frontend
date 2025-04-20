@@ -6,6 +6,9 @@ import React, { useEffect, useState } from "react";
 import { fetchProducts, selectProduct } from "@/store/productSlice";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { useRouter, useSearchParams } from "next/navigation";
+import { addToCart } from "@/api/cart";
+import toast from "react-hot-toast";
+import { addToWishlist } from "@/api/wishlist";
 
 const ShopPage = () => {
   const dispatch = useAppDispatch();
@@ -34,6 +37,18 @@ const ShopPage = () => {
     dispatch(fetchProducts({ page, size }));
   }, [dispatch, router]);
 
+  const _handleAddToCart = async (id, variantId, quantity = 1) => {
+    try {
+      const response = await addToCart(id, variantId, quantity);
+      if (response.data.data) {
+        toast.success("Product added to Cart");
+      }
+    } catch (error) {
+      toast.error("Error while adding product to cart");
+      console.error("Error while adding product to cart : ", error);
+    }
+  };
+
   return (
     <section className=" my-5 md:my-10 flex gap-5 custom-padding">
       <Filter />
@@ -41,7 +56,11 @@ const ShopPage = () => {
       <div className=" grid grid-cols-2  md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-6  md:gap-x-4 md:gap-y-8 lg:gap-x-5 lg:gap-y-10 ">
         {products &&
           products.data?.map((prod, i) => (
-            <ProductCard product={prod} key={i} />
+            <ProductCard
+              key={i}
+              product={prod}
+              onAddToCart={_handleAddToCart}
+            />
           ))}
       </div>
     </section>
