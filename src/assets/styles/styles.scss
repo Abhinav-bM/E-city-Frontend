@@ -1,8 +1,8 @@
-@import "tailwindcss";
-@import "navbar";
-@import "variable";
-@import "common";
-@import "utils";
+@use "tailwindcss";
+@use "navbar";
+@use "variable";
+@use "common";
+@use "utils";
 
 @theme {
   --color-primary: var(--primary);
