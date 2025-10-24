@@ -1,6 +1,14 @@
 import React from "react";
 
-const CloseIcon = ({ width = 24, height = 24, className }) => {
+const MenuIcon = ({
+  width = 24,
+  height = 24,
+  className,
+}: {
+  className?: string;
+  width?: number;
+  height?: number;
+}) => {
   return (
     <svg
       width={width}
@@ -11,7 +19,7 @@ const CloseIcon = ({ width = 24, height = 24, className }) => {
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M6 18L18 6M6 6L18 18"
+        d="M3 6.00098H21M3 12.001H21M3 18.001H21"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
@@ -21,4 +29,4 @@ const CloseIcon = ({ width = 24, height = 24, className }) => {
   );
 };
 
-export default CloseIcon;
+export default MenuIcon;

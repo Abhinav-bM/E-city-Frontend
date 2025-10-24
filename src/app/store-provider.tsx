@@ -1,14 +1,21 @@
 "use client";
 import { Provider } from "react-redux";
-import { makeStore } from "@/store";
-import { useRef } from "react";
+import { makeStore, AppStore } from "@/store";
+import React, { useEffect, useRef } from "react";
+import { setStoreDispatch } from "@/api/httpService";
 
-const StoreProvider = ({ children }) => {
-  const storeRef = useRef(undefined);
+const StoreProvider = ({ children }: { children: React.ReactNode }) => {
+  const storeRef = useRef<AppStore | undefined>(undefined);
 
   if (!storeRef.current) {
     storeRef.current = makeStore();
   }
+
+  useEffect(() => {
+    if (storeRef.current) {
+      setStoreDispatch(storeRef.current.dispatch);
+    }
+  }, []);
 
   return <Provider store={storeRef.current}>{children}</Provider>;
 };

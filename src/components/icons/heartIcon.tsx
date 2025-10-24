@@ -1,6 +1,14 @@
 import React from "react";
 
-const HeartIcon = ({ width = 24, height = 24, className }) => {
+const HeartIcon = ({
+  width = 24,
+  height = 24,
+  className,
+}: {
+  className?: string;
+  width?: number;
+  height?: number;
+}) => {
   return (
     <svg
       viewBox="0 0 24 24"

@@ -35,7 +35,7 @@ const ShopPage = () => {
     const size = searchParams.get("size") || "20";
 
     dispatch(fetchProducts({ page, size }));
-  }, [dispatch, router]);
+  }, [dispatch, searchParams]);
 
   const _handleAddToCart = async (id, variantId, quantity = 1) => {
     try {

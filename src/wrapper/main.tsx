@@ -5,7 +5,7 @@ import React, { Fragment } from "react";
 import { Toaster } from "react-hot-toast";
 import { DEFAULT_TOAST_CONFIG } from "@/utils/toast";
 
-const Mainwrapper = ({ children }) => {
+const Mainwrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <Fragment>
       <Navbar />

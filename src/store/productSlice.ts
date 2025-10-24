@@ -1,13 +1,21 @@
 import { getProducts } from "@/api/product";
+import { ProductsFilter } from "@/models/shop";
 import { createSlice } from "@reduxjs/toolkit";
 
-export const initialState = {
+interface initialStateType {
+  data: any[];
+  status: string;
+  hasMore: boolean;
+  filter: ProductsFilter;
+}
+
+export const initialState: initialStateType = {
   data: [],
   status: "loading",
   hasMore: false,
   filter: {
     page: 1,
-    size: 18,
+    page_size: 18,
   },
 };
 
@@ -15,8 +23,8 @@ const productSlice = createSlice({
   name: "product",
   initialState,
   reducers: {
-    fetchProductsStart: (state) => {
-      state.state = "loading";
+    fetchProductsStart: (state: any) => {
+      state.status = "loading";
     },
     fetchProductsFailure: (state) => {
       state.status = "idle";
@@ -31,10 +39,9 @@ const productSlice = createSlice({
 });
 
 // Fetch
-export const fetchProducts = (filter) => {
-  return async (dispatch) => {
-    dispatch(fetchProductsStart(filter.page === 1));
-
+export const fetchProducts = (filter: any) => {
+  return async (dispatch: any) => {
+    dispatch(fetchProductsStart());
     try {
       const response = await getProducts(filter);
       if (response.data) {
@@ -59,7 +66,7 @@ export const {
   fetchProductsSuccess,
 } = productSlice.actions;
 
-export const selectProduct = (state) => state.product;
-export const selectFilters = (state) => state.product.filter;
+export const selectProduct = (state: any) => state.product;
+export const selectFilters = (state: any) => state.product.filter;
 
 export default productSlice.reducer;

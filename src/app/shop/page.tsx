@@ -1,12 +1,15 @@
+import React, { Suspense } from "react";
 import MainWrapper from "@/wrapper/main";
 import ShopPage from "@/page-component/shop";
 
-const page = () => {
+const Page = () => {
   return (
     <MainWrapper>
-      <ShopPage />
+      <Suspense fallback={<p>Loading shop...</p>}>
+        <ShopPage />
+      </Suspense>
     </MainWrapper>
   );
 };
 
-export default page;
+export default Page;

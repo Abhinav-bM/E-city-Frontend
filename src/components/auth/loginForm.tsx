@@ -3,30 +3,64 @@
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { sendOtp } from "@/api/auth";
+import { sendOtp, verifyOtp } from "@/api/auth";
+import { redirect } from "next/navigation";
+import { useAppDispatch } from "@/store";
+import { setUser } from "@/store/userSlice";
 
-// Validation schema using Yup
 const PhoneSchema = Yup.object().shape({
   phone: Yup.string()
     .matches(/^\d{10}$/, "Phone number must be 10 digits")
     .required("Phone number is required"),
 });
 
+const OtpSchema = Yup.object().shape({
+  otp: Yup.string()
+    .matches(/^\d{6}$/, "OTP must be 6 digits")
+    .required("OTP is required"),
+});
+
 const LoginForm: React.FC = () => {
   const [isOtpPage, setIsOtpPage] = useState(false);
   const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const dispatch = useAppDispatch();
 
-  // Handle phone submission
+  // Send OTP
   const handleSendPhoneOtp = async (values: { phone: string }) => {
     try {
-      console.log("Sending OTP to:", values.phone);
+      setLoading(true);
+      setError("");
       setPhone(values.phone);
 
       await sendOtp(values.phone);
-
       setIsOtpPage(true);
-    } catch (error) {
-      console.error("Failed to send OTP:", error);
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verify OTP
+  const handleVerifyOtp = async (values: { otp: string }) => {
+    try {
+      setLoading(true);
+      setError("");
+      const response = await verifyOtp(phone, values.otp);
+
+      if (response) {
+        const { accessToken } = response.data as any;
+        dispatch(setUser({ accessToken }));
+        window.location.reload();
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.response?.data?.message || "Invalid OTP");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,56 +69,70 @@ const LoginForm: React.FC = () => {
       <div className="border rounded-md p-8 md:p-12 w-[500px]">
         <h3 className="text-center md:text-2xl font-semibold">Login</h3>
 
+        {error && <p className="text-red-500 text-center mt-2">{error}</p>}
+
         {!isOtpPage ? (
           <Formik
             initialValues={{ phone: "" }}
             validationSchema={PhoneSchema}
             onSubmit={handleSendPhoneOtp}
           >
-            {() => (
-              <Form>
-                <div className="mt-6 flex flex-col w-full">
-                  <label htmlFor="phone">Phone</label>
-                  <Field
-                    type="tel"
-                    name="phone"
-                    id="phone"
-                    className="mt-1 border rounded-md h-10 px-2"
-                  />
-                  <ErrorMessage
-                    name="phone"
-                    component="div"
-                    className="text-red-500 text-sm mt-1"
-                  />
-                </div>
+            {({ isSubmitting }) => (
+              <Form className="mt-6 flex flex-col w-full">
+                <label htmlFor="phone">Phone</label>
+                <Field
+                  type="tel"
+                  name="phone"
+                  id="phone"
+                  className="mt-1 border rounded-md h-10 px-2"
+                />
+                <ErrorMessage
+                  name="phone"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
 
                 <button
                   type="submit"
-                  className="w-full bg-primary text-white rounded-md py-2 mt-4"
+                  disabled={isSubmitting || loading}
+                  className="w-full bg-primary text-white rounded-md py-2 mt-4 disabled:opacity-50"
                 >
-                  Get OTP
+                  {loading ? "Sending OTP..." : "Get OTP"}
                 </button>
               </Form>
             )}
           </Formik>
         ) : (
-          <>
-            <div className="mt-6 flex flex-col w-full">
-              <label htmlFor="otp">OTP</label>
-              <input
-                type="text"
-                id="otp"
-                className="mt-1 border rounded-md h-10 px-2"
-              />
-            </div>
+          <Formik
+            initialValues={{ otp: "" }}
+            validationSchema={OtpSchema}
+            onSubmit={handleVerifyOtp}
+          >
+            {({ isSubmitting }) => (
+              <Form className="mt-6 flex flex-col w-full">
+                <label htmlFor="otp">OTP</label>
+                <Field
+                  type="text"
+                  id="otp"
+                  name="otp"
+                  className="mt-1 border rounded-md h-10 px-2"
+                />
+                <ErrorMessage
+                  name="otp"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
 
-            <button
-              type="button"
-              className="w-full bg-primary text-white rounded-md py-2 mt-4"
-            >
-              Submit
-            </button>
-          </>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || loading}
+                  className="w-full bg-primary text-white rounded-md py-2 mt-4 disabled:opacity-50"
+                >
+                  {loading ? "Verifying OTP..." : "Submit OTP"}
+                </button>
+              </Form>
+            )}
+          </Formik>
         )}
       </div>
     </section>

@@ -1,8 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React from "react";
+import { Provider } from "react-redux";
 
-const Authwrapper = ({ children }) => {
+const Authwrapper = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = true;
   const router = useRouter();
   if (!isAuthenticated) {

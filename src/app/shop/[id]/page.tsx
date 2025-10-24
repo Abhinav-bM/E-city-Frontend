@@ -4,7 +4,7 @@ import ProductImageViewer from "@/components/productImageViewer";
 import ProductVariantSelector from "@/components/productVariantSelector";
 import MainWrapper from "@/wrapper/main";
 
-const fetchProduct = async (id) => {
+const fetchProduct = async (id: any) => {
   try {
     const response = await getProduct(id);
     return response.data.data;
@@ -13,7 +13,7 @@ const fetchProduct = async (id) => {
   }
 };
 
-const page = async ({ params }) => {
+const page = async ({ params }: { params: any }) => {
   const { id } = await params;
   const product = await fetchProduct(id);
 

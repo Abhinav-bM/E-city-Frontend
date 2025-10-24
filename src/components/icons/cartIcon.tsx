@@ -1,6 +1,14 @@
 import React from "react";
 
-const CartIcon = ({ className, width = 25, height = 25 }) => {
+const CartIcon = ({
+  className,
+  width = 25,
+  height = 25,
+}: {
+  className?: string;
+  width?: number;
+  height?: number;
+}) => {
   return (
     <svg
       viewBox="0 -0.5 25 25"
