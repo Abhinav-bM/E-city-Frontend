@@ -53,7 +53,7 @@ const ShopPage = () => {
     <section className=" my-5 md:my-10 flex gap-5 custom-padding">
       <Filter />
 
-      <div className=" grid grid-cols-2  md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-6  md:gap-x-4 md:gap-y-8 lg:gap-x-5 lg:gap-y-10 ">
+      <div className=" w-full grid grid-cols-2  md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-6  md:gap-x-4 md:gap-y-8 lg:gap-x-5 lg:gap-y-10 ">
         {products &&
           products.data?.map((prod, i) => (
             <ProductCard
