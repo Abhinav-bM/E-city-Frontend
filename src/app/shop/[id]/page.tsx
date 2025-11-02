@@ -17,6 +17,8 @@ const page = async ({ params }: { params: any }) => {
   const { id } = await params;
   const product = await fetchProduct(id);
 
+  console.log(product)
+
   return (
     <MainWrapper>
       <section className=" custom-padding flex flex-col md:flex-row gap-10 my-10">

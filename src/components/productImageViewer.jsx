@@ -12,7 +12,7 @@ const ProductImageViewer = ({ product }) => {
       modules={[Navigation, Autoplay]}
       autoplay={{ delay: 5000, disableOnInteraction: false }}
       loop={true}
-      className=" overflow-hidden max-w-[550px] max-h-[550px] w-full swiper-shop"
+      className=" overflow-hidden max-w-[550px] max-h-[550px] w-full swiper-shop select-none"
     >
       {product.images?.map((image, index) => (
         <SwiperSlide key={index} className="max-w-[550px] max-h-[550px] ">
