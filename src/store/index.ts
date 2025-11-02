@@ -6,7 +6,7 @@ import {
   TypedUseSelectorHook,
 } from "react-redux";
 import productSlice from "./productSlice";
-import userSlice from "./userSlice";
+import userSlice from "./authSlice";
 
 // Create the store
 export const makeStore = () => {

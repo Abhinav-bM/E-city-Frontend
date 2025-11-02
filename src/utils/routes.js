@@ -1,3 +1,14 @@
+export const protectedRoutes = [
+  "/cart",
+  "/checkout/address",
+  "/payment",
+  "/profile",
+];
+
+export const authRoutes = ["/login", "/signup"];
+
+export const publicRoutes = ["/", "/about"];
+
 const urls = {
   home: "/",
   shop: "/shop",

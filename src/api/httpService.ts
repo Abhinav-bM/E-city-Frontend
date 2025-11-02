@@ -4,7 +4,8 @@ import { API_ENDPOINT as baseURL } from "@/utils/config";
 import { error } from "console";
 import Auth from "@/utils/misc";
 import { AppDispatch } from "@/store";
-import { setUser, logout } from "@/store/userSlice";
+import { setUser, logout as logoutAction } from "@/store/authSlice";
+import { logout as logoutAPI } from "./auth";
 
 let storeDispatch: AppDispatch | null = null;
 
@@ -35,7 +36,9 @@ axiosInstance.interceptors.request.use(
     if (typeof window !== "undefined") {
       const token = Auth.getAccessToken();
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        // Ensure token is a clean string without quotes
+        const cleanToken = token.replace(/^["']|["']$/g, "");
+        config.headers.Authorization = `Bearer ${cleanToken}`;
       }
     }
     return config;
@@ -59,14 +62,31 @@ axiosInstance.interceptors.response.use(
             {},
             { withCredentials: true }
           );
-          const { accessToken } = res.data;
-          Auth.setAccesToken(accessToken);
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          storeDispatch?.(setUser({ accessToken }));
-          return axiosInstance(originalRequest);
+          // Handle both response.data and response.data.data structures
+          const responseData = res.data?.data || res.data;
+          const { accessToken } = responseData;
+          
+          if (accessToken) {
+            Auth.setAccesToken(accessToken);
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            storeDispatch?.(setUser({ accessToken }));
+            return axiosInstance(originalRequest);
+          } else {
+            throw new Error("No access token in refresh response");
+          }
         } catch (err) {
-          Auth.removeAccessToken();
-          storeDispatch?.(logout()); // Logout if refresh fails
+          // Clear tokens and logout on refresh failure
+          Auth.logout();
+          storeDispatch?.(logoutAction());
+          // Call logout API to invalidate refresh token on server
+          logoutAPI().catch(() => {
+            // Ignore errors - we're already clearing local tokens
+          });
+          // Redirect to login if we're in browser
+          if (typeof window !== "undefined") {
+            window.location.href = "/login";
+          }
+          return Promise.reject(err);
         }
       } else {
         console.error(
@@ -75,6 +95,7 @@ axiosInstance.interceptors.response.use(
         );
       }
     } else {
+      
       console.error("Network error:", error.message);
     }
     return Promise.reject(error);

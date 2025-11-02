@@ -8,6 +8,7 @@ const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   const storeRef = useRef<AppStore | undefined>(undefined);
 
   if (!storeRef.current) {
+    // create the store instance the first time this render
     storeRef.current = makeStore();
   }
 

@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { sendOtp, verifyOtp } from "@/api/auth";
-import { redirect } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAppDispatch } from "@/store";
-import { setUser } from "@/store/userSlice";
+import { setUser } from "@/store/authSlice";
+import Auth from "@/utils/misc";
 
 const PhoneSchema = Yup.object().shape({
   phone: Yup.string()
@@ -26,6 +27,8 @@ const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Send OTP
   const handleSendPhoneOtp = async (values: { phone: string }) => {
@@ -51,14 +54,35 @@ const LoginForm: React.FC = () => {
       setError("");
       const response = await verifyOtp(phone, values.otp);
 
-      if (response) {
-        const { accessToken } = response.data as any;
-        dispatch(setUser({ accessToken }));
-        window.location.reload();
+      if (response?.data) {
+        // Handle both response.data and response.data.data structures
+        const responseData = response.data.data || response.data;
+        const { accessToken, refreshToken, user } = responseData;
+
+        if (!accessToken) {
+          throw new Error("No access token received");
+        }
+
+        // Store tokens
+        Auth.setAccesToken(accessToken);
+        if (refreshToken) {
+          Auth.setRefreshToken(refreshToken);
+        }
+
+        // Store user data in Redux
+        dispatch(setUser({ user, accessToken, refreshToken }));
+
+        // Redirect to referer or home
+        const referer = searchParams?.get("referer");
+        if (referer) {
+          router.push(referer);
+        } else {
+          router.push("/");
+        }
       }
     } catch (err: any) {
       console.error(err);
-      setError(err?.response?.data?.message || "Invalid OTP");
+      setError(err?.response?.data?.message || err?.message || "Invalid OTP");
     } finally {
       setLoading(false);
     }
