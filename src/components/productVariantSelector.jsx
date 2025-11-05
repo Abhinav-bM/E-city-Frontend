@@ -15,7 +15,9 @@ const ProductVariantSelector = ({ product }) => {
   // Initialize with default variant if available
   useEffect(() => {
     if (variants.length > 0) {
-      const defaultVariant = variants.find((v) => v.isDefault) || variants[0];
+      const defaultVariant = variants.find(
+        (v) => v.variantId === product.currentVariant.variantId
+      );
       if (defaultVariant?.attributes) {
         setSelectedAttributes(defaultVariant.attributes);
       }
@@ -92,7 +94,7 @@ const ProductVariantSelector = ({ product }) => {
 
   // Handle variant selection and routing
   const handleVariantSelect = () => {
-    console.log("matching variant : ", matchingVariant)
+    console.log("matching variant : ", matchingVariant);
     if (matchingVariant?.variantId) {
       router.replace(`/shop/${matchingVariant.variantId}`);
     }
