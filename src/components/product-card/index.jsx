@@ -40,7 +40,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   return (
     <div className={clsx(styles.productCard, "relative group")}>
-      <Link href={`/shop/${product._id}`}>
+      <Link href={`/shop/${product.variantId}`}>
         <div className="overflow-hidden h-48 md:h-72 rounded-sm bg-gray-100">
           {hasImage ? (
             <img
@@ -66,7 +66,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         <div className="mt-2 w-full">
           <h1 className="text-base text-textPrimary">{product.name || "Product"}</h1>
           <span className="font-semibold">
-            ₹ {product?.defaultVariant?.price || "N/A"}
+            ₹ {product?.price || "N/A"}
           </span>
         </div>
       </Link>

@@ -15,9 +15,8 @@ const fetchProduct = async (id: any) => {
 
 const page = async ({ params }: { params: any }) => {
   const { id } = await params;
-  const product = await fetchProduct(id);
-
-  console.log(product)
+  const productResponse = await fetchProduct(id);
+  const product = productResponse.currentVariant
 
   return (
     <MainWrapper>
@@ -28,7 +27,7 @@ const page = async ({ params }: { params: any }) => {
 
         <div className=" w-full">
           <h1 className="text-2xl  md:text-3xl font-normal">{product.name}</h1>
-          <ProductVariantSelector product={product} />
+          <ProductVariantSelector product={productResponse} />
 
           {/* <CheckoutContainer product={product} /> */}
 

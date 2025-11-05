@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 
 const ProductVariantSelector = ({ product }) => {
   const router = useRouter();
-  const { price, variantAttributes = [], variants = [] } = product || {};
+  const { price } = product.currrentVariant || {};
+  const { variantAttributes = [] } = product.baseProduct;
+  const variants = product.availableVariants || [];
 
   // Track selected attributes: { Color: "Blue", Ram: "8GB", Rom: "128GB" }
   const [selectedAttributes, setSelectedAttributes] = useState({});
-  
+
   // Initialize with default variant if available
   useEffect(() => {
     if (variants.length > 0) {
@@ -34,7 +36,7 @@ const ProductVariantSelector = ({ product }) => {
     // Find variant that matches all selected attributes
     return variants.find((variant) => {
       if (!variant.attributes) return false;
-      
+
       return variantAttributes.every((attr) => {
         return variant.attributes[attr.name] === selectedAttributes[attr.name];
       });
@@ -90,8 +92,9 @@ const ProductVariantSelector = ({ product }) => {
 
   // Handle variant selection and routing
   const handleVariantSelect = () => {
-    if (matchingVariant?._id) {
-      router.push(`/shop/${matchingVariant._id}`);
+    console.log("matching variant : ", matchingVariant)
+    if (matchingVariant?.variantId) {
+      router.replace(`/shop/${matchingVariant.variantId}`);
     }
   };
 
@@ -103,9 +106,14 @@ const ProductVariantSelector = ({ product }) => {
 
   // Check if a value is out of stock
   const isOutOfStock = (attributeName, value) => {
-    if (!matchingVariant && variantAttributes.every((attr) => 
-      attr.name === attributeName ? selectedAttributes[attr.name] === value : selectedAttributes[attr.name]
-    )) {
+    if (
+      !matchingVariant &&
+      variantAttributes.every((attr) =>
+        attr.name === attributeName
+          ? selectedAttributes[attr.name] === value
+          : selectedAttributes[attr.name]
+      )
+    ) {
       // Check if all attributes would match (except current one)
       const testAttributes = { ...selectedAttributes, [attributeName]: value };
       const testVariant = variants.find((variant) => {
@@ -168,13 +176,16 @@ const ProductVariantSelector = ({ product }) => {
               <div className="flex flex-wrap gap-2 mt-1">
                 {attr.values?.map((value, idx) => {
                   const isAvailable = isValueAvailable(attr.name, value);
-                  const isCurrentlySelected = selectedAttributes[attr.name] === value;
+                  const isCurrentlySelected =
+                    selectedAttributes[attr.name] === value;
                   const isDisabled = !isAvailable;
 
                   return (
                     <button
                       key={idx}
-                      onClick={() => !isDisabled && handleAttributeSelect(attr.name, value)}
+                      onClick={() =>
+                        !isDisabled && handleAttributeSelect(attr.name, value)
+                      }
                       disabled={isDisabled}
                       className={clsx(
                         "px-4 py-2 rounded-sm border transition-all duration-200 text-sm font-medium",
@@ -185,7 +196,9 @@ const ProductVariantSelector = ({ product }) => {
                           ? "opacity-40 cursor-not-allowed line-through"
                           : "cursor-pointer"
                       )}
-                      title={isDisabled ? "This combination is not available" : value}
+                      title={
+                        isDisabled ? "This combination is not available" : value
+                      }
                     >
                       {value}
                     </button>
@@ -202,7 +215,7 @@ const ProductVariantSelector = ({ product }) => {
         <div className="mt-6 pt-4 border-t border-gray-200">
           <button
             onClick={handleVariantSelect}
-            disabled={matchingVariant.stock === 0}
+            // disabled={matchingVariant.stock === 0}
             className={clsx(
               "w-full py-3 px-6 rounded-sm font-semibold text-white transition-all duration-200",
               matchingVariant.stock > 0
@@ -221,13 +234,14 @@ const ProductVariantSelector = ({ product }) => {
       )}
 
       {/* Selection Status */}
-      {!matchingVariant && variantAttributes.some((attr) => selectedAttributes[attr.name]) && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-sm">
-          <p className="text-sm text-blue-700">
-            Please select all options to view variant details
-          </p>
-        </div>
-      )}
+      {!matchingVariant &&
+        variantAttributes.some((attr) => selectedAttributes[attr.name]) && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-sm">
+            <p className="text-sm text-blue-700">
+              Please select all options to view variant details
+            </p>
+          </div>
+        )}
     </div>
   );
 };
