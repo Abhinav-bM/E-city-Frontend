@@ -2,13 +2,12 @@
 
 import Filter from "@/components/filter";
 import ProductCard from "@/components/product-card";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { fetchProducts, selectProduct } from "@/store/productSlice";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { useRouter, useSearchParams } from "next/navigation";
 import { addToCart } from "@/api/cart";
 import toast from "react-hot-toast";
-import { addToWishlist } from "@/api/wishlist";
 
 const ShopPage = () => {
   const dispatch = useAppDispatch();

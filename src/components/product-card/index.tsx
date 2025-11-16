@@ -1,19 +1,24 @@
 "use client";
-import urls from "@/utils/routes";
+
 import Link from "next/link";
 import styles from "./styles.module.scss";
 import React, { useState } from "react";
 import clsx from "clsx";
-import HeartIcon from "../icons/heartIcon";
 import CartIcon from "../icons/cartIcon";
 import WishlistButton from "../wishlistButton";
+import { ProductList } from "@/models/shop";
 
-const ProductCard = ({ product, onAddToCart }) => {
+interface ProductCardProps {
+  product: ProductList;
+  onAddToCart: () => void;
+}
+
+const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   console.log("PRODUCT DETAILS : ", product);
-  
+
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
-  
+
   // Get image URL or use placeholder
   const imageUrl = product?.images?.[0]?.url;
   const hasImage = imageUrl && !imageError;
@@ -40,12 +45,12 @@ const ProductCard = ({ product, onAddToCart }) => {
 
   return (
     <div className={clsx(styles.productCard, "relative group")}>
-      <Link href={`/shop/${product.variantId}`}>
+      <Link href={`/shop/${product?.slug}`}>
         <div className="overflow-hidden h-48 md:h-72 rounded-sm bg-gray-100">
           {hasImage ? (
             <img
               src={imageUrl}
-              alt={product.name || "Product image"}
+              alt={product.title || "Ecity"}
               className="w-full h-full object-cover transition-transform duration-400 group-hover:scale-105"
               onError={() => {
                 setImageError(true);
@@ -64,20 +69,17 @@ const ProductCard = ({ product, onAddToCart }) => {
           )}
         </div>
         <div className="mt-2 w-full">
-          <h1 className="text-base text-textPrimary">{product.name || "Product"}</h1>
-          <span className="font-semibold">
-            ₹ {product?.price || "N/A"}
-          </span>
+          <h1 className="text-base text-textPrimary truncate">
+            {product?.title}
+          </h1>
+          <span className="font-semibold">₹ {product?.sellingPrice}</span>
         </div>
       </Link>
 
       <div className="opacity-0  group-hover:opacity-100 ransition-opacity duration-500 ease-out absolute bottom-1/4 left-1/2 -translate-x-1/2  bg-gray-100 w-min flex justify-center px-4 py-2 rounded-sm shadow-md">
         <WishlistButton product={product} />
         <div className="border-l mx-4 border-gray-400"></div>
-        <button
-          onClick={() => onAddToCart(product._id, product.defaultVariant._id)}
-          className="cursor-pointer"
-        >
+        <button onClick={() => onAddToCart()} className="cursor-pointer">
           <CartIcon />
         </button>
       </div>
