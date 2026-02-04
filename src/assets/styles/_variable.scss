@@ -1,37 +1,35 @@
 // Colors
 
 :root {
-  --error: #bc3232;
-  --yellow: #ffbd35;
-  --success: #0d9276;
+  /* Functional Colors */
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --info: #3b82f6;
 
-  // Main
-  --primary: #31473a;
-  --secondary: #fc7300;
+  /* Brand Colors */
+  --primary: #0f172a; /* Slate 900 - Deep, professional dark */
+  --primary-hover: #1e293b; /* Slate 800 */
+  --secondary: #4f46e5; /* Indigo 600 - Valid accent */
 
-  // Background
+  /* Backgrounds */
+  --bg-page: #f8fafc; /* Slate 50 */
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
 
-  // Background
-  --bg-primary: #252525;
-  --bg-primary-smoke: #26282b;
-  --bg-secondary: #30353c;
-  --bg-dark: #3d3b40;
-  --bg-border: #30353c;
-  --bg-footer: var(--bg-secondary);
+  /* Text */
+  --text-primary: #1e293b; /* Slate 800 */
+  --text-secondary: #64748b; /* Slate 500 */
+  --text-inverted: #ffffff;
 
-  // Text
-  --text-primary: #000000;
-  --text-secondary: #ffffff;
-
-  // btn
-  --btn-background: #012953;
-  --btn-black: black;
-  --btn-dark: rgb(35, 34, 34);
-
-  --primary-lighter: color-mix(in srgb, var(--primary), #fff 90%);
-  --primary-lighter2: color-mix(in srgb, var(--primary), #fff 70%);
+  /* Borders */
+  --border-light: #e2e8f0; /* Slate 200 */
+  --border-medium: #cbd5e1; /* Slate 300 */
 }
 
 body {
-  background-color: #edf4f2;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  /* Apply via Tailwind usually, but safe fallback */
+  font-family: "Inter", sans-serif;
 }

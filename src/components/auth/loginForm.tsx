@@ -57,20 +57,18 @@ const LoginForm: React.FC = () => {
       if (response?.data) {
         // Handle both response.data and response.data.data structures
         const responseData = response.data.data || response.data;
-        const { accessToken, refreshToken, user } = responseData;
+        const { accessToken, user } = responseData;
 
         if (!accessToken) {
           throw new Error("No access token received");
         }
 
-        // Store tokens
+        // Store tokens (Access Token only - Refresh Token is HTTP-only cookie)
         Auth.setAccesToken(accessToken);
-        if (refreshToken) {
-          Auth.setRefreshToken(refreshToken);
-        }
+        // Refresh token is handled automatically by cookies
 
         // Store user data in Redux
-        dispatch(setUser({ user, accessToken, refreshToken }));
+        dispatch(setUser({ user, accessToken }));
 
         // Redirect to referer or home
         const referer = searchParams?.get("referer");

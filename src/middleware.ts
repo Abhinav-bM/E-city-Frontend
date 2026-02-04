@@ -13,7 +13,7 @@ export function middleware(request: NextRequest) {
       const expiryDate = new Date(decodedJWT.exp * 1000);
       if (new Date() > expiryDate && pathname !== "/re-auth") {
         return NextResponse.redirect(
-          new URL(`/re-auth?referer=${request.nextUrl.pathname}`, request.url)
+          new URL(`/re-auth?referer=${request.nextUrl.pathname}`, request.url),
         );
       }
     }
@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
   // Decode the expiry from the token
   if (protectedRoutes.includes(request.nextUrl.pathname) && !token) {
     const response = NextResponse.redirect(
-      new URL(`/login?referer=${request.nextUrl.pathname}`, request.url)
+      new URL(`/login?referer=${request.nextUrl.pathname}`, request.url),
     );
     return response;
   }
@@ -30,9 +30,8 @@ export function middleware(request: NextRequest) {
   if (authRoutes.includes(request.nextUrl.pathname) && token) {
     // Fix: redirect to home instead of broken URL
     const referer = request.nextUrl.searchParams.get("referer");
-    return NextResponse.redirect(
-      new URL(referer || "/", request.url)
-    );
+    const redirectUrl = referer && referer.startsWith("/") ? referer : "/";
+    return NextResponse.redirect(new URL(redirectUrl, request.url));
   }
 }
 

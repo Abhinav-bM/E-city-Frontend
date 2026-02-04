@@ -7,75 +7,87 @@ const ProductVariantSelector = ({ product }) => {
   const router = useRouter();
   const { price } = product.currrentVariant || {};
   const { variantAttributes = [] } = product.baseProduct;
-  const variants = product.availableVariants || [];
+  const allVariants = product.availableVariants || [];
 
-  // Track selected attributes: { Color: "Blue", Ram: "8GB", Rom: "128GB" }
+  // --- CONDITION LOGIC ---
+  // Check what conditions are available
+  const hasNew = allVariants.some((v) => !v.condition || v.condition === "New");
+  const hasUsed = allVariants.some((v) => v.condition && v.condition !== "New");
+
+  // Default to New if available, else Used
+  const [selectedCondition, setSelectedCondition] = useState(
+    hasNew ? "New" : "Used",
+  );
+
+  // Filter variants based on the selected condition
+  const variants = useMemo(() => {
+    if (selectedCondition === "New") {
+      return allVariants.filter((v) => !v.condition || v.condition === "New");
+    } else {
+      return allVariants.filter((v) => v.condition && v.condition !== "New");
+    }
+  }, [allVariants, selectedCondition]);
+
+  // --- EXISTING ATTRIBUTE LOGIC (Applied to filtered 'variants') ---
   const [selectedAttributes, setSelectedAttributes] = useState({});
 
-  // Initialize with default variant if available
+  // Initialize with default variant if available (and reset when condition changes)
   useEffect(() => {
     if (variants.length > 0) {
-      const defaultVariant = variants.find(
-        (v) => v.variantId === product.currentVariant.variantId
+      // Try to find a variant that matches current selectedAttributes first
+      const currentMatch = variants.find((v) =>
+        variantAttributes.every(
+          (attr) => v.attributes?.[attr.name] === selectedAttributes[attr.name],
+        ),
       );
-      if (defaultVariant?.attributes) {
-        setSelectedAttributes(defaultVariant.attributes);
+
+      if (!currentMatch) {
+        // If no match in this condition, pick the first available one as default
+        const defaultVariant = variants[0];
+        if (defaultVariant?.attributes) {
+          setSelectedAttributes(defaultVariant.attributes);
+        }
       }
     }
-  }, [variants]);
+  }, [variants, selectedCondition]); // Depend on selectedCondition to reset
 
-  // Find matching variant based on selected attributes
   const matchingVariant = useMemo(() => {
     if (!variants.length || !variantAttributes.length) return null;
-
-    // Check if all attributes are selected
     const allSelected = variantAttributes.every(
-      (attr) => selectedAttributes[attr.name]
+      (attr) => selectedAttributes[attr.name],
     );
-
     if (!allSelected) return null;
 
-    // Find variant that matches all selected attributes
+    // For "New", we expect distinct combinations.
+    // For "Used", there might be multiple items with same attributes (unique units).
+    // We'll return the FIRST match here for price display,
+    // but handle the specific list separately for 'Used'.
     return variants.find((variant) => {
       if (!variant.attributes) return false;
-
       return variantAttributes.every((attr) => {
         return variant.attributes[attr.name] === selectedAttributes[attr.name];
       });
     });
   }, [selectedAttributes, variants, variantAttributes]);
 
-  // Get available values for an attribute based on current selections
   const getAvailableValues = useMemo(() => {
     return (attributeName) => {
-      // If no other attributes are selected, show all values
       const otherSelections = { ...selectedAttributes };
       delete otherSelections[attributeName];
-
       const hasOtherSelections = Object.keys(otherSelections).length > 0;
 
-      if (!hasOtherSelections) {
-        // Return all unique values for this attribute from variants
-        const values = new Set();
-        variants.forEach((variant) => {
-          if (variant.attributes?.[attributeName]) {
-            values.add(variant.attributes[attributeName]);
-          }
+      let validVariants = variants;
+      if (hasOtherSelections) {
+        validVariants = variants.filter((variant) => {
+          if (!variant.attributes) return false;
+          return Object.keys(otherSelections).every(
+            (key) => variant.attributes[key] === otherSelections[key],
+          );
         });
-        return Array.from(values);
       }
 
-      // Filter variants that match other selected attributes
-      const matchingVariants = variants.filter((variant) => {
-        if (!variant.attributes) return false;
-        return Object.keys(otherSelections).every(
-          (key) => variant.attributes[key] === otherSelections[key]
-        );
-      });
-
-      // Extract unique values for this attribute from matching variants
       const values = new Set();
-      matchingVariants.forEach((variant) => {
+      validVariants.forEach((variant) => {
         if (variant.attributes?.[attributeName]) {
           values.add(variant.attributes[attributeName]);
         }
@@ -84,7 +96,6 @@ const ProductVariantSelector = ({ product }) => {
     };
   }, [selectedAttributes, variants]);
 
-  // Handle attribute selection
   const handleAttributeSelect = (attributeName, value) => {
     setSelectedAttributes((prev) => ({
       ...prev,
@@ -92,48 +103,35 @@ const ProductVariantSelector = ({ product }) => {
     }));
   };
 
-  // Handle variant selection and routing
-  const handleVariantSelect = () => {
-    console.log("matching variant : ", matchingVariant);
-    if (matchingVariant?.variantId) {
-      router.replace(`/shop/${matchingVariant.variantId}`);
+  const handleVariantSelect = (variantId) => {
+    if (variantId) {
+      router.replace(`/shop/${variantId}`);
     }
   };
 
-  // Check if a value is available for selection
   const isValueAvailable = (attributeName, value) => {
-    const availableValues = getAvailableValues(attributeName);
-    return availableValues.includes(value);
+    return getAvailableValues(attributeName).includes(value);
   };
 
-  // Check if a value is out of stock
-  const isOutOfStock = (attributeName, value) => {
-    if (
-      !matchingVariant &&
-      variantAttributes.every((attr) =>
-        attr.name === attributeName
-          ? selectedAttributes[attr.name] === value
-          : selectedAttributes[attr.name]
-      )
-    ) {
-      // Check if all attributes would match (except current one)
-      const testAttributes = { ...selectedAttributes, [attributeName]: value };
-      const testVariant = variants.find((variant) => {
-        if (!variant.attributes) return false;
-        return variantAttributes.every(
-          (attr) => variant.attributes[attr.name] === testAttributes[attr.name]
-        );
-      });
-      return testVariant ? testVariant.stock === 0 : false;
-    }
-    return matchingVariant?.stock === 0;
-  };
-
-  // Get current display price
   const displayPrice = matchingVariant?.price || product?.price || price || 0;
-  const displayStock = matchingVariant?.stock ?? null;
+  // For used items, we might show a range or "From X"
+  const minPrice =
+    variants.length > 0 ? Math.min(...variants.map((v) => v.price)) : 0;
 
-  if (!variantAttributes.length || !variants.length) {
+  // Find ALL matching unique units for the selected attributes in "Used" mode
+  const matchingUniqueUnits = useMemo(() => {
+    if (selectedCondition === "New") return [];
+    if (!variants.length) return [];
+
+    return variants.filter((variant) => {
+      return variantAttributes.every(
+        (attr) =>
+          variant.attributes?.[attr.name] === selectedAttributes[attr.name],
+      );
+    });
+  }, [variants, selectedCondition, selectedAttributes]);
+
+  if (!variantAttributes.length || !allVariants.length) {
     return (
       <div className="my-4">
         <span className="font-semibold text-2xl">₹ {displayPrice}</span>
@@ -144,31 +142,53 @@ const ProductVariantSelector = ({ product }) => {
 
   return (
     <div className="my-4">
-      {/* Price Display */}
-      <div className="mb-4">
-        <span className="font-semibold text-2xl">₹ {displayPrice}</span>
-        {displayStock !== null && (
-          <span
+      {/* CONDITION TABS */}
+      {hasUsed && (
+        <div className="flex border-b border-gray-200 mb-6">
+          {hasNew && (
+            <button
+              onClick={() => setSelectedCondition("New")}
+              className={clsx(
+                "px-6 py-2 font-medium text-sm focus:outline-none transition-colors duration-200 border-b-2",
+                selectedCondition === "New"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-gray-500 hover:text-gray-700",
+              )}
+            >
+              Buy New
+            </button>
+          )}
+          <button
+            onClick={() => setSelectedCondition("Used")}
             className={clsx(
-              "ml-4 text-sm font-medium",
-              displayStock > 0 ? "text-green-600" : "text-red-600"
+              "px-6 py-2 font-medium text-sm focus:outline-none transition-colors duration-200 border-b-2",
+              selectedCondition === "Used"
+                ? "border-orange-500 text-orange-600"
+                : "border-transparent text-gray-500 hover:text-gray-700",
             )}
           >
-            {displayStock > 0 ? `In Stock (${displayStock})` : "Out of Stock"}
-          </span>
-        )}
+            Buy Used / Refurbished
+          </button>
+        </div>
+      )}
+
+      {/* Price Display */}
+      <div className="mb-4">
+        <span className="font-semibold text-2xl">
+          {selectedCondition === "Used" && matchingUniqueUnits.length > 1
+            ? `From ₹ ${Math.min(...matchingUniqueUnits.map((u) => u.price))}`
+            : `₹ ${displayPrice}`}
+        </span>
       </div>
 
-      {/* Attribute Selection */}
+      {/* Standard Attribute Selection */}
       <div className="mt-5 space-y-4">
         {variantAttributes.map((attr) => {
-          const availableValues = getAvailableValues(attr.name);
           const isSelected = selectedAttributes[attr.name];
-
           return (
             <div key={attr._id || attr.name} className="mb-4">
               <h4 className="font-semibold text-gray-700 mb-2">
-                {attr.name}
+                {attr.name}{" "}
                 {isSelected && (
                   <span className="ml-2 text-sm text-gray-500 font-normal">
                     ({isSelected})
@@ -196,11 +216,8 @@ const ProductVariantSelector = ({ product }) => {
                           : "border-gray-300 bg-white text-gray-700 hover:border-primary hover:bg-gray-50",
                         isDisabled
                           ? "opacity-40 cursor-not-allowed line-through"
-                          : "cursor-pointer"
+                          : "cursor-pointer",
                       )}
-                      title={
-                        isDisabled ? "This combination is not available" : value
-                      }
                     >
                       {value}
                     </button>
@@ -212,36 +229,74 @@ const ProductVariantSelector = ({ product }) => {
         })}
       </div>
 
-      {/* Variant Selection Button */}
-      {matchingVariant && (
+      {/* NEW: Unique Unit Selection List (Only for Used) */}
+      {selectedCondition === "Used" && matchingUniqueUnits.length > 0 && (
+        <div className="mt-8 space-y-4">
+          <h3 className="font-semibold text-gray-800">Available Units</h3>
+          {matchingUniqueUnits.map((unit) => (
+            <div
+              key={unit.sku || unit.variantId}
+              className="border border-gray-200 rounded-md p-4 flex justify-between items-center bg-gray-50 hover:border-orange-300 transition-colors"
+            >
+              <div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={clsx(
+                      "text-xs px-2 py-0.5 rounded font-bold uppercase",
+                      unit.condition === "Refurbished"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-orange-100 text-orange-800",
+                    )}
+                  >
+                    {unit.condition}
+                  </span>
+                  <span className="font-bold text-gray-900">
+                    ₹ {unit.price}
+                  </span>
+                </div>
+                {unit.conditionDescription && (
+                  <p className="text-sm text-gray-600 mt-1 max-w-md">
+                    {unit.conditionDescription}
+                  </p>
+                )}
+                <p className="text-xs text-gray-400 mt-1">SKU: {unit.sku}</p>
+              </div>
+              <button
+                onClick={() => handleVariantSelect(unit.variantId)}
+                className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded hover:bg-orange-700 transition"
+              >
+                Select Unit
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Standard "Buy" Button (Only for New) */}
+      {selectedCondition === "New" && matchingVariant && (
         <div className="mt-6 pt-4 border-t border-gray-200">
           <button
-            onClick={handleVariantSelect}
-            // disabled={matchingVariant.stock === 0}
+            onClick={() => handleVariantSelect(matchingVariant.variantId)}
             className={clsx(
               "w-full py-3 px-6 rounded-sm font-semibold text-white transition-all duration-200",
               matchingVariant.stock > 0
                 ? "bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg"
-                : "bg-gray-400 cursor-not-allowed"
+                : "bg-gray-400 cursor-not-allowed",
             )}
           >
             {matchingVariant.stock > 0
-              ? `Select Variant - ₹${matchingVariant.price}`
+              ? `Buy New - ₹${matchingVariant.price}`
               : "Out of Stock"}
           </button>
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            {matchingVariant.title || "Selected variant"}
-          </p>
         </div>
       )}
 
-      {/* Selection Status */}
+      {/* Selection Warning */}
       {!matchingVariant &&
+        selectedCondition !== "Used" &&
         variantAttributes.some((attr) => selectedAttributes[attr.name]) && (
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-sm">
-            <p className="text-sm text-blue-700">
-              Please select all options to view variant details
-            </p>
+            <p className="text-sm text-blue-700">Please select all options</p>
           </div>
         )}
     </div>

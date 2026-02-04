@@ -69,11 +69,43 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           )}
         </div>
         <div className="mt-2 w-full">
-          <h1 className="text-base text-textPrimary truncate">
-            {product?.title}
-          </h1>
-          <span className="font-semibold">₹ {product?.sellingPrice}</span>
-        </div>
+          <div className="flex flex-col">
+            <h1 className="text-base text-textPrimary truncate">
+              {product?.title}
+            </h1>
+            <div className="flex items-baseline gap-2">
+               <span className="font-semibold">₹ {product?.sellingPrice}</span>
+               {/* Logic to find min used price */}
+               {(() => {
+                  const variants = product?.availableVariants || product?.variants || [];
+                  const usedVariants = variants.filter(v => v.condition && v.condition !== 'New');
+                  if (usedVariants.length > 0) {
+                     const minUsedPrice = Math.min(...usedVariants.map(v => v.price));
+                     return (
+                       <span className="text-xs text-orange-600 font-medium">
+                         (Used from ₹{minUsedPrice})
+                       </span>
+                     );
+                  }
+                  return null;
+               })()}
+            </div>
+            {/* Condition Badges */}
+             <div className="flex gap-1 mt-1">
+                {(() => {
+                   const variants = product?.availableVariants || product?.variants || [];
+                   const hasRefurb = variants.some(v => v.condition === 'Refurbished');
+                   const hasOpenBox = variants.some(v => v.condition === 'Open Box');
+                   
+                   return (
+                     <>
+                        {hasRefurb && <span className="text-[10px] px-1 py-0.5 bg-green-100 text-green-700 rounded-sm">Refurbished</span>}
+                        {hasOpenBox && <span className="text-[10px] px-1 py-0.5 bg-blue-100 text-blue-700 rounded-sm">Open Box</span>}
+                     </>
+                   )
+                })()}
+             </div>
+          </div>
       </Link>
 
       <div className="opacity-0  group-hover:opacity-100 ransition-opacity duration-500 ease-out absolute bottom-1/4 left-1/2 -translate-x-1/2  bg-gray-100 w-min flex justify-center px-4 py-2 rounded-sm shadow-md">

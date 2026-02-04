@@ -13,10 +13,12 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<any>) => {
-      // Handle both { user, accessToken, refreshToken } and { accessToken } payloads
-      const payload = action.payload;
-      state.user = payload.user || payload;
+    setUser: (
+      state,
+      action: PayloadAction<{ user: any; accessToken: string }>,
+    ) => {
+      const { user } = action.payload;
+      state.user = user;
       state.status = SLICE_STATUS.SUCCESS;
       state.isAuthenticated = true;
     },

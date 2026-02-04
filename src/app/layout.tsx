@@ -1,5 +1,6 @@
 import React from "react";
 import StoreProvider from "./store-provider";
+import "@/assets/styles/styles.scss";
 
 export const metadata = {
   title: "Ecity",
