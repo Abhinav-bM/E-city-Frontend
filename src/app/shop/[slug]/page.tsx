@@ -1,46 +1,33 @@
 import { getProduct } from "@/api/product";
-import CheckoutContainer from "@/components/checkoutContainer";
-import ProductImageViewer from "@/components/productImageViewer";
-import ProductVariantSelector from "@/components/productVariantSelector";
 import MainWrapper from "@/wrapper/main";
+import ProductDetails from "@/components/shop/ProductDetails";
+import { notFound } from "next/navigation";
 
-const fetchProduct = async (slug: any) => {
+const fetchProduct = async (slug: string) => {
   try {
     const response = await getProduct(slug);
     return response.data.data;
   } catch (error) {
-    console.log("Error fetching products:", error);
+    console.error("Error fetching product:", error);
+    return null;
   }
 };
 
-const page = async ({ params }: { params: any }) => {
+const Page = async ({ params }: { params: any }) => {
   const { slug } = await params;
   const productResponse = await fetchProduct(slug);
-  const product = productResponse.currentVariant;
+
+  if (!productResponse) {
+    return notFound();
+  }
 
   return (
     <MainWrapper>
-      <section className=" custom-padding flex flex-col md:flex-row gap-10 my-10">
-        <div className="w-full">
-          <ProductImageViewer product={product} />
-        </div>
-
-        <div className=" w-full">
-          <h1 className="text-2xl  md:text-3xl font-normal">
-            {product?.title}
-          </h1>
-          <ProductVariantSelector product={productResponse} />
-
-          {/* <CheckoutContainer product={product} /> */}
-
-          <div className=" my-5">
-            <h6 className=" font-semibold mb-2">Product Description</h6>
-            <article className="prose prose-sm">{product.description}</article>
-          </div>
-        </div>
+      <section className="custom-padding my-10">
+        <ProductDetails productData={productResponse} />
       </section>
     </MainWrapper>
   );
 };
 
-export default page;
+export default Page;
