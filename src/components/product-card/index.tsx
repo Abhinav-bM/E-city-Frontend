@@ -1,187 +1,210 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
-import { Heart, Plus } from "lucide-react";
+import Image from "next/image";
+import React, { useState, useMemo } from "react";
+import { ShoppingCart, Image as ImageIcon } from "lucide-react";
 import WishlistButton from "../wishlistButton";
 
-// Assuming types are handled or import is correct
-// If ProductList is not available, we can use any
 interface ProductCardProps {
   product: any;
   onAddToCart: (id?: string, variantId?: string) => void;
 }
 
-const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
+const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProps) => {
   const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
 
-  // Get image URL or use placeholder
-  const imageUrl = product?.images?.[0]?.url || product?.images?.[0]; // Handle object or string
+  // --- Data Processing ---
+  const imageUrl = product?.images?.[0]?.url || product?.images?.[0];
   const hasImage = imageUrl && !imageError;
 
-  // Calculate discount percentage
-  const discount =
-    product?.compareAtPrice && product.compareAtPrice > product.sellingPrice
-      ? Math.round(
-          ((product.compareAtPrice - product.sellingPrice) /
-            product.compareAtPrice) *
-            100,
-        )
-      : 0;
+  const sellingPrice = product?.sellingPrice || 0;
+  const compareAtPrice = product?.compareAtPrice || 0;
+  const hasDiscount = compareAtPrice > sellingPrice;
+  const discount = hasDiscount
+    ? Math.round(((compareAtPrice - sellingPrice) / compareAtPrice) * 100)
+    : 0;
 
-  // Determine Condition/Badges
-  const getBadges = () => {
-    const variants = product?.availableVariants || product?.variants || [];
-    const isRefurbished = variants.some(
-      (v: any) => v.condition === "Refurbished",
-    );
-    const isOpenBox = variants.some((v: any) => v.condition === "Open Box");
-    // const isNew = !isRefurbished && !isOpenBox; // Default assumption for now
-
-    // Check if explicitly marked as New Arrival (prop or logic)
-    // For now using a hardcoded 'New' if not used.
-    // Ideally pass `isNewArrival` flag.
-
-    const badges = [];
-    if (product?.isNewArrival)
-      badges.push({ text: "NEW", color: "bg-blue-600 text-white" });
-    if (isRefurbished)
-      badges.push({ text: "Refurbished", color: "bg-green-600 text-white" });
-    if (isOpenBox)
-      badges.push({ text: "Open Box", color: "bg-amber-500 text-white" });
-
-    return badges;
-  };
-
-  const badges = getBadges();
-
-  // Stock Logic
   const stock = product?.stock || 0;
   const isOutOfStock = stock === 0;
-  const isLowStock = stock > 0 && stock <= 5;
+  const isNew = product?.condition === "New";
+  const condition = product?.conditionGrade || product?.condition;
+
+  // --- THEME LOGIC (New vs Used) ---
+  const theme = isNew
+    ? {
+        // NEW: Blue Accents
+        hoverBorder: "hover:border-blue-200",
+        hoverShadow: "hover:shadow-[0_4px_20px_-10px_rgba(37,99,235,0.15)]",
+        badgeNew: "bg-blue-600 text-white",
+        button:
+          "bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-blue-200",
+      }
+    : {
+        // USED: Amber/Gold Accents
+        hoverBorder: "hover:border-amber-200",
+        hoverShadow: "hover:shadow-[0_4px_20px_-10px_rgba(245,158,11,0.15)]",
+        badgeCondition: "bg-amber-50 text-amber-700 border-amber-100",
+        button:
+          "bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white hover:shadow-amber-200",
+      };
+
+  // Format Variant: "Color / Storage"
+  const variantText = useMemo(() => {
+    const attributes = product?.variantAttributes || [];
+    const color = attributes.find((a: any) => a.name.toLowerCase() === "color")
+      ?.values?.[0];
+    const storage = attributes.find(
+      (a: any) => a.name.toLowerCase() === "storage",
+    )?.values?.[0];
+    return [color, storage].filter(Boolean).join(" / ");
+  }, [product]);
 
   return (
     <div
-      className={`group relative bg-white rounded-2xl p-4 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-100 h-full flex flex-col ${isOutOfStock ? "opacity-75" : ""}`}
+      className={`group flex flex-col h-full w-full bg-white rounded-2xl border border-gray-100 transition-all duration-300 overflow-hidden relative ${theme.hoverBorder} ${theme.hoverShadow}`}
     >
-      {/* Badges */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-        {badges.map((badge, index) => (
-          <span
-            key={index}
-            className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${badge.color}`}
-          >
-            {badge.text}
-          </span>
-        ))}
-        {discount > 0 && (
-          <span className="text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider bg-red-500 text-white">
-            -{discount}%
-          </span>
-        )}
-        {isLowStock && (
-          <span className="text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider bg-orange-500 text-white">
-            Only {stock} Left
-          </span>
-        )}
-        {isOutOfStock && (
-          <span className="text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider bg-slate-500 text-white">
-            Out of Stock
-          </span>
-        )}
-      </div>
-
-      {/* Wishlist Button - Top Right */}
-      <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="bg-white p-2 rounded-full shadow-md hover:bg-slate-50 cursor-pointer text-slate-400 hover:text-red-500 transition-colors">
-          <Heart size={18} />
+      {/* --- IMAGE AREA --- */}
+      <div className="relative w-full aspect-square bg-gray-50/50 p-4">
+        {/* Wishlist */}
+        <div className="absolute top-3 right-3 z-20">
+          <div className="text-gray-400 hover:text-red-500 transition-colors transform active:scale-90">
+            <WishlistButton productId={product?.baseProductId} />
+          </div>
         </div>
-      </div>
 
-      <Link
-        href={`/shop/${product?.slug}`}
-        className="block flex-1 flex flex-col"
-      >
-        {/* Image Container */}
-        <div className="relative aspect-square mb-4 rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center">
-          {hasImage ? (
-            <img
-              src={imageUrl}
-              alt={product.title}
-              className={`w-full h-full object-contain p-4 mix-blend-multiply transition-transform duration-500 group-hover:scale-110 ${isOutOfStock ? "grayscale" : ""}`}
-              onError={() => {
-                setImageError(true);
-                setImageLoading(false);
-              }}
-              onLoad={() => setImageLoading(false)}
-            />
-          ) : (
-            <div className="text-slate-300">
-              <svg
-                className="w-12 h-12"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
+        {/* Badges */}
+        <div className="absolute top-3 left-3 z-20 flex flex-col items-start gap-1.5">
+          {product?.isNewArrival && (
+            <span
+              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm ${theme.badgeNew || "bg-gray-900 text-white"}`}
+            >
+              New
+            </span>
+          )}
+
+          {/* Condition Badge (Only for Used) */}
+          {!isNew && condition && (
+            <span
+              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm border ${theme.badgeCondition}`}
+            >
+              {condition}
+            </span>
+          )}
+
+          {hasDiscount && (
+            <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
+              -{discount}%
+            </span>
           )}
         </div>
 
-        {/* Content */}
-        <div className="flex-1 flex flex-col">
-          {/* Brand */}
-          <p className="text-xs font-medium text-slate-400 mb-1 uppercase tracking-wide">
-            {product?.brand || "E-City"}
-          </p>
-
-          {/* Title */}
-          <h3 className="text-base font-bold text-slate-900 mb-2 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">
-            {product?.title}
-          </h3>
-
-          {/* Price & Action Row */}
-          <div className="mt-auto flex items-end justify-between">
-            <div>
-              <div className="text-lg font-extrabold text-blue-600">
-                ₹{product?.sellingPrice?.toLocaleString()}
-              </div>
-              {product?.compareAtPrice > product?.sellingPrice && (
-                <div className="text-xs text-slate-400 line-through">
-                  ₹{product?.compareAtPrice?.toLocaleString()}
-                </div>
-              )}
-            </div>
-
-            {/* Add to Cart Button */}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                if (!isOutOfStock) {
-                  onAddToCart(product.baseProductId, product.variantId);
-                }
-              }}
-              disabled={isOutOfStock}
-              className={`p-2.5 rounded-xl transition-colors shadow-lg ${
-                isOutOfStock
-                  ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
-                  : "bg-slate-900 text-white hover:bg-blue-600 shadow-slate-200 hover:shadow-blue-200"
+        {/* Product Image */}
+        <Link
+          href={`/shop/${product?.slug}`}
+          className="block w-full h-full relative flex items-center justify-center"
+        >
+          {hasImage ? (
+            <Image
+              src={imageUrl}
+              alt={product.title}
+              fill
+              className={`object-contain transition-transform duration-300 group-hover:scale-[1.02] ${
+                isOutOfStock ? "opacity-50 grayscale" : "opacity-100"
               }`}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              onError={() => setImageError(true)}
+              priority={false}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-gray-300 gap-2">
+              <ImageIcon size={24} strokeWidth={1.5} />
+              <span className="text-[10px] font-medium uppercase tracking-widest">
+                No Image
+              </span>
+            </div>
+          )}
+
+          {/* Out of Stock Overlay */}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10">
+              <span className="bg-gray-900 text-white text-[10px] font-bold uppercase px-3 py-1.5 tracking-widest rounded-full shadow-lg">
+                Sold Out
+              </span>
+            </div>
+          )}
+        </Link>
+      </div>
+
+      {/* --- CONTENT AREA --- */}
+      <div className="flex flex-col flex-1 px-4 pb-4 pt-2">
+        {/* Title & Variant */}
+        <div className="mb-2">
+          <Link
+            href={`/shop/${product?.slug}`}
+            className="block transition-colors duration-200 hover:opacity-80"
+          >
+            <h3
+              className="text-[15px] font-semibold text-gray-900 leading-snug line-clamp-2 min-h-[2.5em]"
+              title={product?.title}
             >
-              <Plus size={20} strokeWidth={2.5} />
-            </button>
-          </div>
+              {product?.title}
+            </h3>
+          </Link>
+          <p className="text-xs text-gray-500 font-medium mt-1 truncate min-h-[1.5em]">
+            {variantText || <span className="opacity-0">-</span>}
+          </p>
         </div>
-      </Link>
+
+        {/* Footer: Price & Action */}
+        <div className="mt-auto flex items-end justify-between gap-2">
+          {/* Price Block */}
+          <div className="flex flex-col leading-none pb-0.5">
+            {hasDiscount && (
+              <span className="text-[11px] text-gray-400 line-through mb-1 font-medium">
+                ₹{compareAtPrice.toLocaleString("en-IN")}
+              </span>
+            )}
+            <span className="text-base md:text-lg font-bold text-gray-900 tracking-tight">
+              ₹{sellingPrice.toLocaleString("en-IN")}
+            </span>
+          </div>
+
+          {/* Action Button - Theme based color */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isOutOfStock)
+                onAddToCart(product.baseProductId, product.variantId);
+            }}
+            disabled={isOutOfStock}
+            className={`
+              relative h-9 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-200
+              ${
+                isOutOfStock
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : `${theme.button} hover:shadow-md`
+              }
+            `}
+            aria-label="Add to cart"
+          >
+            {isOutOfStock ? (
+              <span className="text-[10px] font-bold uppercase tracking-wide">
+                N/A
+              </span>
+            ) : (
+              <>
+                <span className="text-xs font-bold tracking-wide">Add</span>
+                <ShoppingCart size={15} strokeWidth={2.5} />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
-};
+});
+
+ProductCard.displayName = "ProductCard";
 
 export default ProductCard;

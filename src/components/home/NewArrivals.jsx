@@ -16,7 +16,11 @@ const NewArrivals = () => {
   useEffect(() => {
     const fetchNewArrivals = async () => {
       try {
-        const res = await getProducts({ isNewArrival: true, limit: 12 });
+        const res = await getProducts({
+          isNewArrival: true,
+          limit: 12,
+          inStockOnly: true,
+        });
         setProducts(res.data.data.products || []);
       } catch (error) {
         console.error("Failed to fetch new arrivals", error);

@@ -71,8 +71,9 @@ const CategoryCarousel = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
         <Swiper
           modules={[Navigation]}
-          spaceBetween={20}
+          spaceBetween={40}
           slidesPerView="auto"
+          centerInsufficientSlides={true}
           className="category-swiper !px-1"
         >
           {categories.map((cat) => (

@@ -1,6 +1,6 @@
 import { getProduct } from "@/api/product";
 import MainWrapper from "@/wrapper/main";
-import ProductDetails from "@/components/shop/ProductDetails";
+import ProductMain from "@/components/shop/pdp/ProductMain";
 import { notFound } from "next/navigation";
 
 const fetchProduct = async (slug: string) => {
@@ -23,9 +23,7 @@ const Page = async ({ params }: { params: any }) => {
 
   return (
     <MainWrapper>
-      <section className="custom-padding my-10">
-        <ProductDetails productData={productResponse} />
-      </section>
+      <ProductMain productData={productResponse} />
     </MainWrapper>
   );
 };

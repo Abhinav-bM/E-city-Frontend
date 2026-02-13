@@ -15,7 +15,11 @@ const RefurbishedSpotlight = () => {
   useEffect(() => {
     const fetchRefurbished = async () => {
       try {
-        const res = await getProducts({ inventoryType: "Unique", limit: 8 });
+        const res = await getProducts({
+          inventoryType: "Unique",
+          limit: 8,
+          inStockOnly: true,
+        });
         setProducts(res.data.data.products || []);
       } catch (error) {
         console.error("Failed to fetch refurbished products", error);

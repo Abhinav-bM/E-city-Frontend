@@ -21,7 +21,7 @@ export const initialState: initialStateType = {
   hasMore: false,
   filter: {
     page: 1,
-    page_size: 18,
+    limit: 12,
   },
   facets: {
     brands: [],
@@ -45,7 +45,13 @@ const productSlice = createSlice({
       const { filter, products, facets } = action.payload;
       state.filter = filter;
       state.status = "idle";
-      state.data = [...products];
+
+      if (Number(filter.page) === 1) {
+        state.data = [...products];
+      } else {
+        state.data = [...state.data, ...products];
+      }
+
       if (facets) {
         state.facets = facets;
       }

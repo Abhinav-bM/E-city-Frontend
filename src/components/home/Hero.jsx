@@ -21,7 +21,7 @@ const Hero = () => {
       title: "Next-Gen Electronics",
       subtitle: "Upgrade your lifestyle with the latest tech innovations.",
       accent: "Premium Collection",
-      link: "/shop?sort=newest",
+      link: "/shop?type=new", // Updated link
       color: "from-blue-600 to-violet-600",
     },
     {
@@ -31,7 +31,7 @@ const Hero = () => {
       title: "Certified Refurbished",
       subtitle: "Premium quality, sustainable choice. Save up to 40%.",
       accent: "Eco-Friendly Choice",
-      link: "/shop?condition=Refurbished",
+      link: "/shop?type=used", // Updated link
       color: "from-emerald-600 to-teal-600",
     },
     {
@@ -41,7 +41,7 @@ const Hero = () => {
       title: "Smart Accessories",
       subtitle: "Enhance your experience with essential add-ons.",
       accent: "Trending Now",
-      link: "/shop?category=accessories",
+      link: "/shop?category=accessories&type=new", // Assumed accessories are usually new
       color: "from-orange-600 to-red-600",
     },
   ];
