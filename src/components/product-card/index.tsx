@@ -1,122 +1,210 @@
 "use client";
 
 import Link from "next/link";
-import styles from "./styles.module.scss";
-import React, { useState } from "react";
-import clsx from "clsx";
-import CartIcon from "../icons/cartIcon";
+import Image from "next/image";
+import React, { useState, useMemo } from "react";
+import { ShoppingCart, Image as ImageIcon } from "lucide-react";
 import WishlistButton from "../wishlistButton";
-import { ProductList } from "@/models/shop";
 
 interface ProductCardProps {
-  product: ProductList;
-  onAddToCart: () => void;
+  product: any;
+  onAddToCart: (id?: string, variantId?: string) => void;
 }
 
-const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
-  console.log("PRODUCT DETAILS : ", product);
-
+const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProps) => {
   const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
 
-  // Get image URL or use placeholder
-  const imageUrl = product?.images?.[0]?.url;
+  // --- Data Processing ---
+  const imageUrl = product?.images?.[0]?.url || product?.images?.[0];
   const hasImage = imageUrl && !imageError;
 
-  // Placeholder SVG component
-  const PlaceholderImage = () => (
-    <div className="w-full h-full flex items-center justify-center bg-gray-200">
-      <svg
-        className="w-24 h-24 text-gray-400"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.5}
-          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-        />
-      </svg>
-    </div>
-  );
+  const sellingPrice = product?.sellingPrice || 0;
+  const compareAtPrice = product?.compareAtPrice || 0;
+  const hasDiscount = compareAtPrice > sellingPrice;
+  const discount = hasDiscount
+    ? Math.round(((compareAtPrice - sellingPrice) / compareAtPrice) * 100)
+    : 0;
+
+  const stock = product?.stock || 0;
+  const isOutOfStock = stock === 0;
+  const isNew = product?.condition === "New";
+  const condition = product?.conditionGrade || product?.condition;
+
+  // --- THEME LOGIC (New vs Used) ---
+  const theme = isNew
+    ? {
+        // NEW: Blue Accents
+        hoverBorder: "hover:border-blue-200",
+        hoverShadow: "hover:shadow-[0_4px_20px_-10px_rgba(37,99,235,0.15)]",
+        badgeNew: "bg-blue-600 text-white",
+        button:
+          "bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-blue-200",
+      }
+    : {
+        // USED: Amber/Gold Accents
+        hoverBorder: "hover:border-amber-200",
+        hoverShadow: "hover:shadow-[0_4px_20px_-10px_rgba(245,158,11,0.15)]",
+        badgeCondition: "bg-amber-50 text-amber-700 border-amber-100",
+        button:
+          "bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white hover:shadow-amber-200",
+      };
+
+  // Format Variant: "Color / Storage"
+  const variantText = useMemo(() => {
+    const attributes = product?.variantAttributes || [];
+    const color = attributes.find((a: any) => a.name.toLowerCase() === "color")
+      ?.values?.[0];
+    const storage = attributes.find(
+      (a: any) => a.name.toLowerCase() === "storage",
+    )?.values?.[0];
+    return [color, storage].filter(Boolean).join(" / ");
+  }, [product]);
 
   return (
-    <div className={clsx(styles.productCard, "relative group")}>
-      <Link href={`/shop/${product?.slug}`}>
-        <div className="overflow-hidden h-48 md:h-72 rounded-sm bg-gray-100">
-          {hasImage ? (
-            <img
-              src={imageUrl}
-              alt={product.title || "Ecity"}
-              className="w-full h-full object-cover transition-transform duration-400 group-hover:scale-105"
-              onError={() => {
-                setImageError(true);
-                setImageLoading(false);
-              }}
-              onLoad={() => setImageLoading(false)}
-              style={{ display: imageLoading ? "none" : "block" }}
-            />
-          ) : (
-            <PlaceholderImage />
+    <div
+      className={`group flex flex-col h-full w-full bg-white rounded-2xl border border-gray-100 transition-all duration-300 overflow-hidden relative ${theme.hoverBorder} ${theme.hoverShadow}`}
+    >
+      {/* --- IMAGE AREA --- */}
+      <div className="relative w-full aspect-square bg-gray-50/50 p-4">
+        {/* Wishlist */}
+        <div className="absolute top-3 right-3 z-20">
+          <div className="text-gray-400 hover:text-red-500 transition-colors transform active:scale-90">
+            <WishlistButton productId={product?.baseProductId} />
+          </div>
+        </div>
+
+        {/* Badges */}
+        <div className="absolute top-3 left-3 z-20 flex flex-col items-start gap-1.5">
+          {product?.isNewArrival && (
+            <span
+              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm ${theme.badgeNew || "bg-gray-900 text-white"}`}
+            >
+              New
+            </span>
           )}
-          {imageLoading && hasImage && (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200 animate-pulse">
-              <div className="w-16 h-16 border-4 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
-            </div>
+
+          {/* Condition Badge (Only for Used) */}
+          {!isNew && condition && (
+            <span
+              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm border ${theme.badgeCondition}`}
+            >
+              {condition}
+            </span>
+          )}
+
+          {hasDiscount && (
+            <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">
+              -{discount}%
+            </span>
           )}
         </div>
-        <div className="mt-2 w-full">
-          <div className="flex flex-col">
-            <h1 className="text-base text-textPrimary truncate">
-              {product?.title}
-            </h1>
-            <div className="flex items-baseline gap-2">
-               <span className="font-semibold">₹ {product?.sellingPrice}</span>
-               {/* Logic to find min used price */}
-               {(() => {
-                  const variants = product?.availableVariants || product?.variants || [];
-                  const usedVariants = variants.filter(v => v.condition && v.condition !== 'New');
-                  if (usedVariants.length > 0) {
-                     const minUsedPrice = Math.min(...usedVariants.map(v => v.price));
-                     return (
-                       <span className="text-xs text-orange-600 font-medium">
-                         (Used from ₹{minUsedPrice})
-                       </span>
-                     );
-                  }
-                  return null;
-               })()}
-            </div>
-            {/* Condition Badges */}
-             <div className="flex gap-1 mt-1">
-                {(() => {
-                   const variants = product?.availableVariants || product?.variants || [];
-                   const hasRefurb = variants.some(v => v.condition === 'Refurbished');
-                   const hasOpenBox = variants.some(v => v.condition === 'Open Box');
-                   
-                   return (
-                     <>
-                        {hasRefurb && <span className="text-[10px] px-1 py-0.5 bg-green-100 text-green-700 rounded-sm">Refurbished</span>}
-                        {hasOpenBox && <span className="text-[10px] px-1 py-0.5 bg-blue-100 text-blue-700 rounded-sm">Open Box</span>}
-                     </>
-                   )
-                })()}
-             </div>
-          </div>
-      </Link>
 
-      <div className="opacity-0  group-hover:opacity-100 ransition-opacity duration-500 ease-out absolute bottom-1/4 left-1/2 -translate-x-1/2  bg-gray-100 w-min flex justify-center px-4 py-2 rounded-sm shadow-md">
-        <WishlistButton product={product} />
-        <div className="border-l mx-4 border-gray-400"></div>
-        <button onClick={() => onAddToCart()} className="cursor-pointer">
-          <CartIcon />
-        </button>
+        {/* Product Image */}
+        <Link
+          href={`/shop/${product?.slug}`}
+          className="block w-full h-full relative flex items-center justify-center"
+        >
+          {hasImage ? (
+            <Image
+              src={imageUrl}
+              alt={product.title}
+              fill
+              className={`object-contain transition-transform duration-300 group-hover:scale-[1.02] ${
+                isOutOfStock ? "opacity-50 grayscale" : "opacity-100"
+              }`}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              onError={() => setImageError(true)}
+              priority={false}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-gray-300 gap-2">
+              <ImageIcon size={24} strokeWidth={1.5} />
+              <span className="text-[10px] font-medium uppercase tracking-widest">
+                No Image
+              </span>
+            </div>
+          )}
+
+          {/* Out of Stock Overlay */}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10">
+              <span className="bg-gray-900 text-white text-[10px] font-bold uppercase px-3 py-1.5 tracking-widest rounded-full shadow-lg">
+                Sold Out
+              </span>
+            </div>
+          )}
+        </Link>
+      </div>
+
+      {/* --- CONTENT AREA --- */}
+      <div className="flex flex-col flex-1 px-4 pb-4 pt-2">
+        {/* Title & Variant */}
+        <div className="mb-2">
+          <Link
+            href={`/shop/${product?.slug}`}
+            className="block transition-colors duration-200 hover:opacity-80"
+          >
+            <h3
+              className="text-[15px] font-semibold text-gray-900 leading-snug line-clamp-2 min-h-[2.5em]"
+              title={product?.title}
+            >
+              {product?.title}
+            </h3>
+          </Link>
+          <p className="text-xs text-gray-500 font-medium mt-1 truncate min-h-[1.5em]">
+            {variantText || <span className="opacity-0">-</span>}
+          </p>
+        </div>
+
+        {/* Footer: Price & Action */}
+        <div className="mt-auto flex items-end justify-between gap-2">
+          {/* Price Block */}
+          <div className="flex flex-col leading-none pb-0.5">
+            {hasDiscount && (
+              <span className="text-[11px] text-gray-400 line-through mb-1 font-medium">
+                ₹{compareAtPrice.toLocaleString("en-IN")}
+              </span>
+            )}
+            <span className="text-base md:text-lg font-bold text-gray-900 tracking-tight">
+              ₹{sellingPrice.toLocaleString("en-IN")}
+            </span>
+          </div>
+
+          {/* Action Button - Theme based color */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isOutOfStock)
+                onAddToCart(product.baseProductId, product.variantId);
+            }}
+            disabled={isOutOfStock}
+            className={`
+              relative h-9 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-200
+              ${
+                isOutOfStock
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : `${theme.button} hover:shadow-md`
+              }
+            `}
+            aria-label="Add to cart"
+          >
+            {isOutOfStock ? (
+              <span className="text-[10px] font-bold uppercase tracking-wide">
+                N/A
+              </span>
+            ) : (
+              <>
+                <span className="text-xs font-bold tracking-wide">Add</span>
+                <ShoppingCart size={15} strokeWidth={2.5} />
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
-};
+});
+
+ProductCard.displayName = "ProductCard";
 
 export default ProductCard;

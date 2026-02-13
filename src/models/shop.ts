@@ -1,4 +1,4 @@
-export  interface ProductList {
+export interface ProductList {
   title: string;
   sellingPrice: number;
   actualPrice: number;
@@ -8,5 +8,7 @@ export  interface ProductList {
 
 export interface ProductsFilter {
   page: number;
-  page_size: number;
+  limit: number;
+  total?: number;
+  pages?: number;
 }

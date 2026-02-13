@@ -1,16 +1,24 @@
 import MainWrapper from "@/wrapper/main";
-import MainBanner from "@/components/mainBanner";
-import { Fragment } from "react";
+import Hero from "@/components/home/Hero";
+import CategoryCarousel from "@/components/home/CategoryCarousel";
+import NewArrivals from "@/components/home/NewArrivals";
+import RefurbishedSpotlight from "@/components/home/RefurbishedSpotlight";
 
 /*
   Home Page
-   1:fetch home page data from an API and render here
+   - Hero Section (Main Banner)
+   - Category Carousel (Featured Categories)
+   - New Arrivals (Latest Products)
+   - Refurbished Spotlight (Featured Used Items)
 */
 
 export default function Home() {
   return (
     <MainWrapper>
-      <MainBanner />
+      <CategoryCarousel />
+      <Hero />
+      <NewArrivals />
+      <RefurbishedSpotlight />
     </MainWrapper>
   );
 }

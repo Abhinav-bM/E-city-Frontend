@@ -7,6 +7,12 @@ interface initialStateType {
   status: string;
   hasMore: boolean;
   filter: ProductsFilter;
+  facets: {
+    brands: string[];
+    conditions: string[];
+    minPrice: number;
+    maxPrice: number;
+  };
 }
 
 export const initialState: initialStateType = {
@@ -15,7 +21,13 @@ export const initialState: initialStateType = {
   hasMore: false,
   filter: {
     page: 1,
-    page_size: 18,
+    limit: 12,
+  },
+  facets: {
+    brands: [],
+    conditions: [],
+    minPrice: 0,
+    maxPrice: 5000,
   },
 };
 
@@ -30,10 +42,19 @@ const productSlice = createSlice({
       state.status = "idle";
     },
     fetchProductsSuccess: (state, action) => {
-      const { filter, products } = action.payload;
+      const { filter, products, facets } = action.payload;
       state.filter = filter;
       state.status = "idle";
-      state.data = [...products];
+
+      if (Number(filter.page) === 1) {
+        state.data = [...products];
+      } else {
+        state.data = [...state.data, ...products];
+      }
+
+      if (facets) {
+        state.facets = facets;
+      }
     },
   },
 });
@@ -50,7 +71,8 @@ export const fetchProducts = (filter: any) => {
           fetchProductsSuccess({
             filter: data.pagination,
             products: data.products,
-          })
+            facets: data.facets,
+          }),
         );
       }
     } catch (error) {
