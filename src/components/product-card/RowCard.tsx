@@ -121,7 +121,7 @@ const ProductRowCard = React.memo(
             {/* Specifications List */}
             {flatSpecs.length > 0 && (
               <ul className="space-y-1.5 mb-6">
-                {flatSpecs.map((spec, i) => (
+                {flatSpecs.map((spec: string, i: number) => (
                   <li
                     key={i}
                     className="flex items-center gap-2 text-sm text-slate-500"

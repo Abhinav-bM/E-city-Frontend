@@ -1,7 +1,6 @@
 // Create Axios instance with conditional environment variable access
 import axios from "axios";
 import { API_ENDPOINT as baseURL } from "@/utils/config";
-import { error } from "console";
 import Auth from "@/utils/misc";
 import { AppDispatch } from "@/store";
 import { setUser, logout as logoutAction } from "@/store/authSlice";

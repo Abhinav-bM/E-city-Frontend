@@ -44,11 +44,27 @@ const Auth = {
     }
   },
   removeAccessToken() {
-    removeCookie(USER_TOKEN);
+    removeCookie(USER_TOKEN, { path: "/" });
   },
-  // Complete logout - clear access token (refresh token cleared by backend route)
+  setRefreshToken(data: string) {
+    setCookie(USER_REFRESH_TOKEN, data, cookieOptions);
+  },
+  getRefreshToken(): string | undefined {
+    const token = getCookie(USER_REFRESH_TOKEN);
+    if (!token) return undefined;
+    try {
+      return token.startsWith('"') ? JSON.parse(token) : token;
+    } catch {
+      return token;
+    }
+  },
+  removeRefreshToken() {
+    removeCookie(USER_REFRESH_TOKEN, { path: "/" });
+  },
+  // Complete logout - clear both tokens
   logout() {
     this.removeAccessToken();
+    this.removeRefreshToken();
   },
 };
 

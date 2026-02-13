@@ -14,7 +14,7 @@ import toast from "react-hot-toast";
 
 import MobileFilterDrawer from "@/components/shop/MobileFilterDrawer";
 import InfiniteScrollTrigger from "@/components/ui/InfiniteScrollTrigger";
-import ProductCardSkeleton from "@/components/shop/ProductCardSkeleton";
+import ProductCardSkeleton from "@/components/product-card/Skeleton";
 import FilterSidebarSkeleton from "@/components/shop/FilterSidebarSkeleton";
 
 const ShopPage = () => {
