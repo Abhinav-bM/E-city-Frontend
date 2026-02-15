@@ -8,20 +8,19 @@ export const sendOtp = async (phone: string) => {
 
 export const verifyOtp = async (
   phone: string,
-  otp: string
+  otp: string,
 ): Promise<AxiosResponse<any>> => {
   return httpService.post("/auth/verify-otp", { phone, otp });
 };
 
-// Refresh token - tries cookie first (recommended), falls back to body if refreshToken provided
-export const getNewToken = async (refreshToken?: string) => {
-  // If refreshToken provided, send in body (for backward compatibility)
-  // Otherwise, rely on HTTP-only cookie (recommended for production)
-  if (refreshToken) {
-    return httpService.post("/auth/refresh", { refreshToken });
-  }
-  // Use cookie-based refresh (withCredentials handles the cookie)
+// Refresh token - relies on HTTP-only cookie (withCredentials handles the cookie)
+export const getNewToken = async () => {
   return httpService.post("/auth/refresh", {}, { withCredentials: true });
+};
+
+// CSRF Handshake - gets the initial XSRF-TOKEN cookie
+export const getCsrfToken = async () => {
+  return httpService.get("/auth/csrf");
 };
 
 // Logout - invalidate refresh token on server and clear local tokens

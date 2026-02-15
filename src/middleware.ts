@@ -7,31 +7,37 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get(USER_TOKEN)?.value;
   const pathname = request.nextUrl.pathname;
 
+  // Basic check for token presence
   if (token) {
-    const decodedJWT = jwtDecode(token);
-    if (decodedJWT && decodedJWT?.exp) {
-      const expiryDate = new Date(decodedJWT.exp * 1000);
-      if (new Date() > expiryDate && pathname !== "/re-auth") {
-        return NextResponse.redirect(
-          new URL(`/re-auth?referer=${request.nextUrl.pathname}`, request.url),
-        );
+    try {
+      const decodedJWT = jwtDecode(token);
+      if (decodedJWT && decodedJWT?.exp) {
+        const expiryDate = new Date(decodedJWT.exp * 1000);
+        // If expired or close to expiring, send to re-auth to attempt a silent refresh
+        if (new Date() > expiryDate && pathname !== "/re-auth") {
+          return NextResponse.redirect(
+            new URL(
+              `/re-auth?referer=${request.nextUrl.pathname}`,
+              request.url,
+            ),
+          );
+        }
       }
+    } catch (e) {
+      // If token is invalid/not a JWT, we might want to let the backend handle it or redirect
     }
   }
 
-  // Decode the expiry from the token
-  if (protectedRoutes.includes(request.nextUrl.pathname) && !token) {
-    const response = NextResponse.redirect(
-      new URL(`/login?referer=${request.nextUrl.pathname}`, request.url),
+  // Route protection
+  if (protectedRoutes.includes(pathname) && !token) {
+    return NextResponse.redirect(
+      new URL(`/login?referer=${pathname}`, request.url),
     );
-    return response;
   }
 
-  if (authRoutes.includes(request.nextUrl.pathname) && token) {
-    // Fix: redirect to home instead of broken URL
-    const referer = request.nextUrl.searchParams.get("referer");
-    const redirectUrl = referer && referer.startsWith("/") ? referer : "/";
-    return NextResponse.redirect(new URL(redirectUrl, request.url));
+  if (authRoutes.includes(pathname) && token) {
+    const referer = request.nextUrl.searchParams.get("referer") || "/";
+    return NextResponse.redirect(new URL(referer, request.url));
   }
 }
 

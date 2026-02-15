@@ -2,6 +2,7 @@
 import axios from "axios";
 import { API_ENDPOINT as baseURL } from "@/utils/config";
 import Auth from "@/utils/misc";
+import { getCookie } from "typescript-cookie";
 import { AppDispatch } from "@/store";
 import { setUser, logout as logoutAction } from "@/store/authSlice";
 import { logout as logoutAPI } from "./auth";
@@ -27,22 +28,22 @@ const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
   withCredentials: true,
+  // Axios built-in CSRF handling (works in browser)
+  xsrfCookieName: "XSRF-TOKEN",
+  xsrfHeaderName: "X-XSRF-TOKEN",
 });
 
-// Request Interceptor (Attach Token) - Runs only in the browser
+// Request Interceptor (CSRF & Manual Token Handling)
 axiosInstance.interceptors.request.use(
   (config) => {
-    if (typeof window !== "undefined") {
-      const token = Auth.getAccessToken();
-      if (token) {
-        // Ensure token is a clean string without quotes
-        const cleanToken = token.replace(/^["']|["']$/g, "");
-        config.headers.Authorization = `Bearer ${cleanToken}`;
-      }
+    // Manually ensure X-XSRF-TOKEN is set from the cookie if it exists
+    const xsrfToken = getCookie("XSRF-TOKEN");
+    if (xsrfToken) {
+      config.headers["X-XSRF-TOKEN"] = xsrfToken;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response Interceptor (Handle Errors)
@@ -59,19 +60,20 @@ axiosInstance.interceptors.response.use(
           const res = await axios.post(
             `${baseURL}/auth/refresh`,
             {},
-            { withCredentials: true }
+            { withCredentials: true },
           );
           // Handle both response.data and response.data.data structures
           const responseData = res.data?.data || res.data;
           const { accessToken } = responseData;
-          
+
           if (accessToken) {
-            Auth.setAccesToken(accessToken);
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            // Even if we use cookies, updating Redux is good for UI state
             storeDispatch?.(setUser({ accessToken }));
             return axiosInstance(originalRequest);
           } else {
-            throw new Error("No access token in refresh response");
+            // If the backend is full HttpOnly, accessToken might not be in body.
+            // If the call succeeded (200), we can just retry.
+            return axiosInstance(originalRequest);
           }
         } catch (err) {
           // Clear tokens and logout on refresh failure
@@ -90,15 +92,14 @@ axiosInstance.interceptors.response.use(
       } else {
         console.error(
           "API Error:",
-          error.response?.data?.message || "Unknown error"
+          error.response?.data?.message || "Unknown error",
         );
       }
     } else {
-      
       console.error("Network error:", error.message);
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

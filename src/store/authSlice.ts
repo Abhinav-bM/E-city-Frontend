@@ -15,12 +15,12 @@ const userSlice = createSlice({
   reducers: {
     setUser: (
       state,
-      action: PayloadAction<{ user?: any; accessToken: string }>,
+      action: PayloadAction<{ user?: any; accessToken?: string }>,
     ) => {
       const { user, accessToken } = action.payload;
       if (user) {
         state.user = user;
-      } else if (state.user) {
+      } else if (state.user && accessToken) {
         state.user.access = accessToken;
       }
       state.status = SLICE_STATUS.SUCCESS;

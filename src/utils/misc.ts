@@ -1,70 +1,12 @@
-import { getCookie, setCookie, removeCookie } from "typescript-cookie";
+import { removeCookie } from "typescript-cookie";
 import { USER_REFRESH_TOKEN, USER_TOKEN } from "./constants";
-import { jwtDecode } from "jwt-decode";
-
-const isProduction =
-  typeof window !== "undefined" && process.env.NODE_ENV === "production";
-
-const cookieOptions = {
-  expires: 7,
-  path: "/",
-  secure: isProduction,
-  sameSite: "strict" as const,
-};
 
 const Auth = {
-  setAccesToken(data: string) {
-    // Store as plain string
-    setCookie(USER_TOKEN, data, cookieOptions);
-  },
-  getAccessToken(): string | undefined {
-    const token = getCookie(USER_TOKEN);
-    if (!token) return undefined;
-
-    try {
-      // Parse if it's a JSON string (backward compatibility)
-      const parsed = token.startsWith('"') ? JSON.parse(token) : token;
-
-      // Validate token and check expiry
-      try {
-        const decoded = jwtDecode(parsed);
-        if (decoded?.exp && decoded.exp * 1000 < Date.now()) {
-          // Token expired, remove it
-          this.removeAccessToken();
-          return undefined;
-        }
-      } catch (decodeError) {
-        // Invalid token format, return as is (let backend handle it)
-      }
-
-      return parsed;
-    } catch {
-      // If parsing fails, return original token
-      return token;
-    }
-  },
-  removeAccessToken() {
-    removeCookie(USER_TOKEN, { path: "/" });
-  },
-  setRefreshToken(data: string) {
-    setCookie(USER_REFRESH_TOKEN, data, cookieOptions);
-  },
-  getRefreshToken(): string | undefined {
-    const token = getCookie(USER_REFRESH_TOKEN);
-    if (!token) return undefined;
-    try {
-      return token.startsWith('"') ? JSON.parse(token) : token;
-    } catch {
-      return token;
-    }
-  },
-  removeRefreshToken() {
-    removeCookie(USER_REFRESH_TOKEN, { path: "/" });
-  },
-  // Complete logout - clear both tokens
+  // Complete logout - the actual cookie clearing is now done by the backend's /auth/logout endpoint
+  // but we can still call this to clear any accidental local state or non-HttpOnly helper cookies.
   logout() {
-    this.removeAccessToken();
-    this.removeRefreshToken();
+    removeCookie(USER_TOKEN, { path: "/" });
+    removeCookie(USER_REFRESH_TOKEN, { path: "/" });
   },
 };
 

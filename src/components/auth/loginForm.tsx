@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { sendOtp, verifyOtp } from "@/api/auth";
+import { getCsrfToken, sendOtp, verifyOtp } from "@/api/auth";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAppDispatch } from "@/store";
 import { setUser } from "@/store/authSlice";
@@ -29,6 +29,18 @@ const LoginForm: React.FC = () => {
   const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  // Initialize CSRF token on mount
+  React.useEffect(() => {
+    const initCsrf = async () => {
+      try {
+        await getCsrfToken();
+      } catch (err) {
+        console.error("Failed to initialize CSRF token:", err);
+      }
+    };
+    initCsrf();
+  }, []);
 
   // Send OTP
   const handleSendPhoneOtp = async (values: { phone: string }) => {
@@ -59,16 +71,14 @@ const LoginForm: React.FC = () => {
         const responseData = response.data.data || response.data;
         const { accessToken, user } = responseData;
 
-        if (!accessToken) {
-          throw new Error("No access token received");
+        // Store tokens (Access Token only if provided - Refresh Token is HTTP-only cookie)
+        if (accessToken) {
+          // Internal Redux state update for UI reactivity
+          dispatch(setUser({ user, accessToken }));
+        } else {
+          // If pure HttpOnly, accessToken might not be in JSON
+          dispatch(setUser({ user }));
         }
-
-        // Store tokens (Access Token only - Refresh Token is HTTP-only cookie)
-        Auth.setAccesToken(accessToken);
-        // Refresh token is handled automatically by cookies
-
-        // Store user data in Redux
-        dispatch(setUser({ user, accessToken }));
 
         // Redirect to referer or home
         const referer = searchParams?.get("referer");

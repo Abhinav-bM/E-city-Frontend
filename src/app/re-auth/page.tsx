@@ -22,47 +22,39 @@ export default function ReAuthPage() {
         setLoading(true);
         setError("");
 
-        // Try to get refresh token, but also allow cookie-based refresh
-        const refreshToken = Auth.getRefreshToken();
+        // Call refresh - will use cookie automatically
+        const response = await getNewToken();
 
-        // Call refresh - will use cookie if refreshToken is undefined
-        const response = await getNewToken(refreshToken || undefined);
-        
         // Handle both response.data and response.data.data structures
         const responseData = response.data?.data || response.data;
         const { accessToken } = responseData;
 
-        if (accessToken) {
-          Auth.setAccesToken(accessToken);
-          // Update refresh token if provided in response
-          if (responseData.refreshToken) {
-            Auth.setRefreshToken(responseData.refreshToken);
-          }
-          
-          // Update Redux store
-          dispatch(setUser({ accessToken }));
+        // Update Redux store (even if accessToken is in cookie, updating Redux helps UI)
+        dispatch(setUser({ accessToken }));
 
-          // Redirect to referer or home
-          const referer = searchParams.get("referer");
-          if (referer) {
-            router.push(referer);
-          } else {
-            router.push("/");
-          }
+        // Redirect to referer or home
+        const referer = searchParams.get("referer");
+        if (referer) {
+          router.push(referer);
         } else {
-          throw new Error("No access token received");
+          router.push("/");
         }
       } catch (error: any) {
         console.error("Token refresh error:", error);
-        setError(error?.response?.data?.message || "Session expired. Please login again.");
-        
+        setError(
+          error?.response?.data?.message ||
+            "Session expired. Please login again.",
+        );
+
         // Clear tokens and redirect to login
         Auth.logout();
-        
+
         // Redirect to login after a short delay
         setTimeout(() => {
           const referer = searchParams.get("referer");
-          router.push(`/login${referer ? `?referer=${encodeURIComponent(referer)}` : ""}`);
+          router.push(
+            `/login${referer ? `?referer=${encodeURIComponent(referer)}` : ""}`,
+          );
         }, 2000);
       } finally {
         setLoading(false);
