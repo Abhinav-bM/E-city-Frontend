@@ -8,7 +8,6 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
-import { Camera } from "lucide-react";
 
 interface ProductGalleryProps {
   images: string[];

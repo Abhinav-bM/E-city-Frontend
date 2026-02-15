@@ -10,7 +10,7 @@ import UniqueUnitPicker from "./UniqueUnitPicker";
 import ProductActions from "./ProductActions";
 import TechSpecs from "./TechSpecs";
 import ProductHighlights from "./ProductHighlights";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 interface ProductMainProps {

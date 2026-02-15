@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { ShoppingCart, Zap } from "lucide-react";
 import { Variant, BaseProduct } from "./types";
 import { addToCart } from "@/api/cart";
 import toast from "react-hot-toast";

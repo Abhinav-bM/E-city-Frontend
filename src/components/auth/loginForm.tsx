@@ -7,7 +7,6 @@ import { getCsrfToken, sendOtp, verifyOtp } from "@/api/auth";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAppDispatch } from "@/store";
 import { setUser } from "@/store/authSlice";
-import Auth from "@/utils/misc";
 
 const PhoneSchema = Yup.object().shape({
   phone: Yup.string()

@@ -1,7 +1,6 @@
 import { User } from "@/models/user";
 import { SLICE_STATUS } from "@/utils/constants";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { boolean, string } from "yup";
 
 const initialState: User.UserState = {
   user: null,

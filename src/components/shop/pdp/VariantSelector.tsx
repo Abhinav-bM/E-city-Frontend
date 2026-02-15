@@ -2,7 +2,6 @@
 
 import React from "react";
 import { BaseProduct, Variant } from "./types";
-import { Check } from "lucide-react";
 
 interface VariantSelectorProps {
   baseProduct: BaseProduct;

@@ -2,14 +2,7 @@
 
 import React from "react";
 import { SpecificationGroup } from "./types";
-import {
-  Cpu,
-  Smartphone,
-  Battery,
-  Monitor,
-  HardDrive,
-  ShieldCheck,
-} from "lucide-react";
+import { Cpu, Battery, Monitor, HardDrive } from "lucide-react";
 
 interface ProductHighlightsProps {
   specifications: SpecificationGroup[];
