@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronUp, Check } from "lucide-react";
+import { ChevronDown, ChevronUp, Check, X } from "lucide-react";
 import { getCategories } from "@/api/category";
 import Slider from "@/components/ui/Slider";
 
@@ -30,7 +30,6 @@ const FilterSidebar = ({ className = "" }) => {
     price: true,
     condition: true,
     brand: true,
-    // Dynamic sections will be added here
   });
 
   const toggleSection = (section) => {
@@ -171,52 +170,51 @@ const FilterSidebar = ({ className = "" }) => {
 
   return (
     <div
-      className={`w-full bg-card/50 backdrop-blur-sm border border-border/40 rounded-xl p-6 sticky top-20 max-h-[calc(100vh-100px)] overflow-y-auto ${className}`}
-      style={{ animation: "slideInLeft 0.4s ease-out" }}
+      className={`w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto ${className}`}
     >
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/30">
-        <h2 className="font-bold text-lg text-foreground">Filters</h2>
-        <button
-          onClick={clearFilters}
-          className="text-xs text-destructive hover:text-destructive/80 font-semibold uppercase tracking-wider transition-colors duration-200"
-        >
-          Clear
-        </button>
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+        <h2 className="font-bold text-lg text-gray-900">Filters</h2>
+        {(selectedBrands.length > 0 ||
+          selectedConditions.length > 0 ||
+          Object.keys(selectedAttributes).length > 0 ||
+          searchParams.get("minPrice")) && (
+          <button
+            onClick={clearFilters}
+            className="flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 font-semibold uppercase tracking-wider transition-colors duration-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full"
+          >
+            <span>Reset</span>
+            <X size={12} strokeWidth={3} />
+          </button>
+        )}
       </div>
 
       {/* Categories */}
-      <div className="border-b border-border/30 py-4 first:pt-0">
+      <div className="border-b border-gray-100 py-5 first:pt-0">
         <button
-          className="flex items-center justify-between w-full mb-3 group hover:text-primary transition-colors duration-200"
+          className="flex items-center justify-between w-full mb-3 group"
           onClick={() => toggleSection("category")}
         >
-          <span className="font-semibold text-foreground text-sm">
+          <span className="font-semibold text-gray-900 text-[15px]">
             Categories
           </span>
-          <div className="transition-transform duration-300">
-            {expandedSections.category ? (
-              <ChevronUp
-                size={18}
-                className="text-muted-foreground group-hover:text-primary"
-              />
-            ) : (
-              <ChevronDown
-                size={18}
-                className="text-muted-foreground group-hover:text-primary"
-              />
-            )}
+          <div
+            className={`transition-transform duration-300 ${
+              expandedSections.category ? "rotate-180" : ""
+            }`}
+          >
+            <ChevronDown size={18} className="text-gray-400" />
           </div>
         </button>
         {expandedSections.category && (
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-1.5">
             {categories.map((cat) => (
               <button
                 key={cat._id}
                 onClick={() => updateFilters({ category: cat._id })}
-                className={`block text-sm text-left w-full py-1.5 px-2 rounded-md transition-all duration-200 ${
+                className={`block text-sm text-left w-full py-2 px-3 rounded-lg transition-all duration-200 truncate ${
                   searchParams.get("category") === cat._id
-                    ? "bg-primary/10 text-primary font-medium border border-primary/20"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                    ? "bg-gray-900 text-white font-medium shadow-sm"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 from-gray-50"
                 }`}
               >
                 {cat.name}
@@ -227,60 +225,55 @@ const FilterSidebar = ({ className = "" }) => {
       </div>
 
       {/* Price Range */}
-      <div className="border-b border-border/30 py-4">
+      <div className="border-b border-gray-100 py-5">
         <button
-          className="flex items-center justify-between w-full mb-3 group hover:text-primary transition-colors duration-200"
+          className="flex items-center justify-between w-full mb-4 group"
           onClick={() => toggleSection("price")}
         >
-          <span className="font-semibold text-foreground text-sm">
+          <span className="font-semibold text-gray-900 text-[15px]">
             Price Range
           </span>
-          <div className="transition-transform duration-300">
-            {expandedSections.price ? (
-              <ChevronUp
-                size={18}
-                className="text-muted-foreground group-hover:text-primary"
-              />
-            ) : (
-              <ChevronDown
-                size={18}
-                className="text-muted-foreground group-hover:text-primary"
-              />
-            )}
+          <div
+            className={`transition-transform duration-300 ${
+              expandedSections.price ? "rotate-180" : ""
+            }`}
+          >
+            <ChevronDown size={18} className="text-gray-400" />
           </div>
         </button>
         {expandedSections.price && (
-          <div className="space-y-5 px-1 mt-4">
+          <div className="space-y-6 px-1">
             <Slider
               min={minPrice}
               max={maxPrice}
               value={priceRange}
               onChange={handlePriceChange}
-              className="accent-primary"
+              className="accent-gray-900"
             />
-            <div className="flex items-center justify-between text-sm font-semibold text-foreground">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground uppercase">
-                  From
+            <div className="flex items-center justify-between">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 flex flex-col w-[45%]">
+                <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">
+                  Min
                 </span>
-                <span className="text-lg">
+                <span className="text-sm font-semibold text-gray-900">
                   ₹{priceRange[0].toLocaleString("en-IN")}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground uppercase">
-                  To
+              <div className="text-gray-300">-</div>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 flex flex-col w-[45%]">
+                <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">
+                  Max
                 </span>
-                <span className="text-lg">
+                <span className="text-sm font-semibold text-gray-900">
                   ₹{priceRange[1].toLocaleString("en-IN")}
                 </span>
               </div>
             </div>
             <button
               onClick={applyPriceFilter}
-              className="w-full bg-primary text-white text-xs font-semibold py-2.5 rounded-lg hover:bg-primary/90 transition-all duration-200 active:scale-95 shadow-lg hover:shadow-primary/40"
+              className="w-full bg-gray-900 text-white text-xs font-bold uppercase tracking-wider py-3 rounded-lg hover:bg-gray-800 transition-all duration-200 active:scale-[0.98] shadow-sm hover:shadow-md"
             >
-              Apply Filter
+              Apply Price
             </button>
           </div>
         )}
@@ -361,6 +354,7 @@ const FilterSidebar = ({ className = "" }) => {
             "Lavender",
             "Violet",
             "Iris",
+            "Plum",
           ],
           Yellow: ["Yellow", "Canary", "Lemongrass"],
           Orange: ["Orange", "Amber"],
@@ -389,32 +383,28 @@ const FilterSidebar = ({ className = "" }) => {
         }
 
         return (
-          <div key={key} className="border-b border-border/30 py-4">
+          <div key={key} className="border-b border-gray-100 py-5">
             <button
-              className="flex items-center justify-between w-full mb-3 group hover:text-primary transition-colors duration-200"
-              onClick={() => toggleSection(key)}
+              className="flex items-center justify-between w-full mb-3 group"
+              onClick={() => toggleSection("key")}
             >
-              <span className="font-semibold text-foreground text-sm">
+              <span className="font-semibold text-gray-900 text-[15px]">
                 {key}
               </span>
-              <div className="transition-transform duration-300">
-                {isOpen ? (
-                  <ChevronUp
-                    size={18}
-                    className="text-muted-foreground group-hover:text-primary"
-                  />
-                ) : (
-                  <ChevronDown
-                    size={18}
-                    className="text-muted-foreground group-hover:text-primary"
-                  />
-                )}
+              <div
+                className={`transition-transform duration-300 ${
+                  isOpen ? "rotate-180" : ""
+                }`}
+              >
+                <ChevronDown size={18} className="text-gray-400" />
               </div>
             </button>
 
             {isOpen && (
               <div
-                className={`${isColor ? "flex flex-wrap gap-2" : "space-y-2 max-h-48 overflow-y-auto"}`}
+                className={`${
+                  isColor ? "flex flex-wrap gap-2.5" : "space-y-2"
+                }`}
               >
                 {displayValues.map((val) => {
                   let isSelected = false;
@@ -459,10 +449,10 @@ const FilterSidebar = ({ className = "" }) => {
                             toggleAttribute(key, val);
                           }
                         }}
-                        className={`group relative w-8 h-8 rounded-full border transition-all duration-200 flex items-center justify-center ${
+                        className={`group relative w-9 h-9 rounded-full border transition-all duration-200 flex items-center justify-center ${
                           isSelected
-                            ? "ring-2 ring-primary ring-offset-2 border-transparent"
-                            : "border-border hover:border-primary/50 hover:scale-110"
+                            ? "ring-2 ring-gray-900 ring-offset-2 border-transparent scale-110"
+                            : "border-gray-200 hover:border-gray-400 hover:scale-105"
                         }`}
                         title={val}
                         style={{
@@ -474,18 +464,20 @@ const FilterSidebar = ({ className = "" }) => {
                       >
                         {/* Checkmark for selected state */}
                         {isSelected && (
-                          <Check
-                            size={14}
-                            className={`${
-                              val.toLowerCase() === "white"
-                                ? "text-black"
-                                : "text-white"
-                            }`}
-                            strokeWidth={3}
-                          />
+                          <div className="bg-white/20 backdrop-blur-[1px] rounded-full p-0.5">
+                            <Check
+                              size={14}
+                              className={`${
+                                val.toLowerCase() === "white"
+                                  ? "text-black"
+                                  : "text-white"
+                              } drop-shadow-md`}
+                              strokeWidth={3}
+                            />
+                          </div>
                         )}
-                        {/* Tooltip-like label on hover */}
-                        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-[10px] px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 border border-border">
+                        {/* Tooltip */}
+                        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                           {val}
                         </span>
                       </button>
@@ -495,15 +487,23 @@ const FilterSidebar = ({ className = "" }) => {
                   return (
                     <label
                       key={val}
-                      className="flex items-center space-x-2 cursor-pointer w-full group py-1.5 px-2 rounded-lg hover:bg-muted/40 transition-colors duration-200"
+                      className="flex items-center space-x-3 cursor-pointer w-full group py-1.5 px-1 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                     >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleAttribute(key, val)}
-                        className="rounded border-border text-primary accent-primary h-4 w-4 cursor-pointer"
-                      />
-                      <span className="text-sm text-foreground group-hover:text-primary transition-colors duration-200">
+                      <div className="relative flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleAttribute(key, val)}
+                          className="peer h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900/20 focus:ring-offset-0 transition-all cursor-pointer"
+                        />
+                      </div>
+                      <span
+                        className={`text-sm transition-colors duration-200 ${
+                          isSelected
+                            ? "text-gray-900 font-medium"
+                            : "text-gray-600 group-hover:text-gray-900"
+                        }`}
+                      >
                         {val}
                       </span>
                     </label>
@@ -516,40 +516,42 @@ const FilterSidebar = ({ className = "" }) => {
       })}
 
       {/* Brands */}
-      <div className="py-4">
+      <div className="py-5">
         <button
-          className="flex items-center justify-between w-full mb-3 group hover:text-primary transition-colors duration-200"
+          className="flex items-center justify-between w-full mb-3 group"
           onClick={() => toggleSection("brand")}
         >
-          <span className="font-semibold text-foreground text-sm">Brands</span>
-          <div className="transition-transform duration-300">
-            {expandedSections.brand ? (
-              <ChevronUp
-                size={18}
-                className="text-muted-foreground group-hover:text-primary"
-              />
-            ) : (
-              <ChevronDown
-                size={18}
-                className="text-muted-foreground group-hover:text-primary"
-              />
-            )}
+          <span className="font-semibold text-gray-900 text-[15px]">
+            Brands
+          </span>
+          <div
+            className={`transition-transform duration-300 ${
+              expandedSections.brand ? "rotate-180" : ""
+            }`}
+          >
+            <ChevronDown size={18} className="text-gray-400" />
           </div>
         </button>
         {expandedSections.brand && (
-          <div className="space-y-2 max-h-48 overflow-y-auto">
+          <div className="space-y-1">
             {brands.map((brand) => (
               <label
                 key={brand}
-                className="flex items-center space-x-2 cursor-pointer w-full group py-1.5 px-2 rounded-lg hover:bg-muted/40 transition-colors duration-200"
+                className="flex items-center space-x-3 cursor-pointer w-full group py-1.5 px-1 rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
                 <input
                   type="checkbox"
                   checked={selectedBrands.includes(brand)}
                   onChange={() => toggleBrand(brand)}
-                  className="rounded border-border text-primary accent-primary h-4 w-4 cursor-pointer"
+                  className="rounded border-gray-300 text-gray-900 focus:ring-gray-900/20 h-4 w-4 cursor-pointer"
                 />
-                <span className="text-sm text-foreground group-hover:text-primary transition-colors duration-200">
+                <span
+                  className={`text-sm transition-colors duration-200 ${
+                    selectedBrands.includes(brand)
+                      ? "text-gray-900 font-medium"
+                      : "text-gray-600 group-hover:text-gray-900"
+                  }`}
+                >
                   {brand}
                 </span>
               </label>

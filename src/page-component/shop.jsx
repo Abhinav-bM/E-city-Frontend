@@ -44,6 +44,9 @@ const ShopPage = () => {
       isActive: "true",
     };
 
+    // Remove 'type' from payload to prevent backend from treating it as an attribute filter
+    delete filterPayload.type;
+
     // Apply strict condition based on type, unless condition is explicitly passed in URL
     // If URL has 'condition', we respect it (allows filtering within 'Used').
     // If URL has NO 'condition', we force defaults based on type.
@@ -51,7 +54,7 @@ const ShopPage = () => {
       if (type === "new") {
         filterPayload.condition = "New";
       } else if (type === "used") {
-        filterPayload.condition = "Refurbished,Open Box";
+        filterPayload.condition = "Refurbished,Open Box,Used";
       }
     } else if (type === "new" && searchParams.get("condition") !== "New") {
       // Edge case: User is in "New" mode but URL has "Refurbished"?
@@ -79,11 +82,14 @@ const ShopPage = () => {
       isActive: "true",
     };
 
+    // Remove 'type' from payload to prevent backend from treating it as an attribute filter
+    delete filterPayload.type;
+
     if (!searchParams.get("condition")) {
       if (type === "new") {
         filterPayload.condition = "New";
       } else if (type === "used") {
-        filterPayload.condition = "Refurbished,Open Box";
+        filterPayload.condition = "Refurbished,Open Box,Used";
       }
     } else if (type === "new") {
       filterPayload.condition = "New";
@@ -105,14 +111,14 @@ const ShopPage = () => {
   };
 
   return (
-    <section className="min-h-screen bg-background">
+    <section className="min-h-screen bg-gray-50">
       {/* Mobile Filter Drawer */}
       <MobileFilterDrawer
         isOpen={isMobileFilterOpen}
         onClose={() => setIsMobileFilterOpen(false)}
       />
 
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 custom-padding py-6 md:py-10">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 custom-padding py-6 md:py-8">
         {/* Desktop Sidebar - Sticky */}
         <aside className="hidden lg:block w-full lg:w-64 flex-shrink-0">
           {products.status === "loading" && products.data.length === 0 ? (
@@ -125,7 +131,7 @@ const ShopPage = () => {
         {/* Main Content Area */}
         <main className="flex-1 min-w-0">
           {/* Shop Header */}
-          <div className="mb-8">
+          <div className="mb-6">
             <ShopHeader
               totalProducts={products.filter?.total || 0}
               onFilterClick={() => setIsMobileFilterOpen(true)}
@@ -133,7 +139,7 @@ const ShopPage = () => {
           </div>
 
           {/* Product Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
             {products.status === "loading" && products.data.length === 0
               ? // Skeletons for initial load
                 Array.from({ length: 12 }).map((_, i) => (
@@ -158,7 +164,7 @@ const ShopPage = () => {
             <div className="col-span-full py-16 text-center">
               <div className="space-y-4">
                 <svg
-                  className="w-16 h-16 mx-auto text-muted-foreground/30"
+                  className="w-16 h-16 mx-auto text-gray-300"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -170,10 +176,10 @@ const ShopPage = () => {
                     d="M20 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 3.5a7.5 7.5 0 0013.15 13.15z"
                   />
                 </svg>
-                <h3 className="text-lg font-semibold text-foreground">
+                <h3 className="text-lg font-semibold text-gray-900">
                   No products found
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   Try adjusting your filters or search criteria
                 </p>
               </div>
