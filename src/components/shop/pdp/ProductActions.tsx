@@ -58,11 +58,7 @@ const ProductActions: React.FC<ProductActionsProps> = ({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   className="h-10 w-10 rounded-full object-cover"
-                  src={
-                    baseProduct.images?.[0]?.url ||
-                    baseProduct.images?.[0] ||
-                    "/placeholder.png"
-                  }
+                  src={baseProduct.images?.[0] || "/placeholder.png"}
                   alt=""
                 />
               </div>

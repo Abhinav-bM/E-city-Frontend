@@ -142,7 +142,7 @@ const CartPage = () => {
                           </span>
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                          {Object.entries(variant.attributes).map(
+                          {Object.entries(variant.attributes || {}).map(
                             ([key, value]) => (
                               <span
                                 key={key}
