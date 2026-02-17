@@ -17,6 +17,10 @@ const Page = async ({ params }: { params: any }) => {
   const { slug } = await params;
   const productResponse = await fetchProduct(slug);
 
+  if (!slug) {
+    return "Slug not found";
+  }
+
   if (!productResponse) {
     return notFound();
   }
