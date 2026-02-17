@@ -69,8 +69,8 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 lg:px-8 mt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+      <div className="container mx-auto px-4 lg:px-8 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Left Column: Gallery */}
           <div className="lg:col-span-6">
             <div className="sticky top-32">
@@ -79,19 +79,19 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
                 isRefurbished={selectedVariant.condition !== "New"}
               />
 
-              {/* Highlights moved here for better visibility */}
+              {/* Highlights */}
               <div className="mt-8">
                 <ProductHighlights
                   specifications={baseProduct.specifications}
                 />
               </div>
 
-              <div className="hidden lg:block mt-20">
-                <div className="flex flex-col gap-2 mb-8">
+              <div className="hidden lg:block mt-12">
+                <div className="flex flex-col gap-2 mb-6">
                   <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-slate-400">
                     Overview
                   </span>
-                  <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
+                  <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                     Product Stories
                   </h3>
                 </div>
@@ -105,7 +105,7 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
 
           {/* Right Column: Details & Actions */}
           <div className="lg:col-span-6">
-            <div className="flex flex-col gap-12">
+            <div className="flex flex-col gap-8">
               <ProductInfo
                 title={baseProduct.title}
                 variant={selectedVariant}
@@ -130,12 +130,12 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
               />
 
               {/* Mobile Description */}
-              <div className="lg:hidden mt-8 pt-12 border-t border-slate-100">
-                <div className="flex flex-col gap-2 mb-6">
+              <div className="lg:hidden mt-8 pt-8 border-t border-slate-100">
+                <div className="flex flex-col gap-2 mb-4">
                   <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-slate-400">
                     Overview
                   </span>
-                  <h3 className="text-xl font-bold text-slate-900 tracking-tight">
+                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">
                     Product Overview
                   </h3>
                 </div>
@@ -149,7 +149,7 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
         </div>
 
         {/* Technical Specifications Section */}
-        <div className="mt-32 pt-20 border-t border-slate-100">
+        <div className="mt-16 pt-12 border-t border-slate-100">
           <TechSpecs baseProduct={baseProduct} />
         </div>
       </div>

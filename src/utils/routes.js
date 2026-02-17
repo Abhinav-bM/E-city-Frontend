@@ -1,9 +1,4 @@
-export const protectedRoutes = [
-  "/cart",
-  "/checkout/address",
-  "/payment",
-  "/profile",
-];
+export const protectedRoutes = ["/checkout/address", "/payment", "/profile"];
 
 export const authRoutes = ["/login", "/signup"];
 

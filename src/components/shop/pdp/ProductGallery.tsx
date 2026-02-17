@@ -44,7 +44,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       )}
 
       {/* Main Slider */}
-      <div className="relative group bg-white rounded-2xl overflow-hidden border border-slate-50 shadow-sm transition-all hover:shadow-xl hover:shadow-slate-100">
+      <div className="relative group bg-white transition-all">
         <Swiper
           spaceBetween={10}
           navigation={true}

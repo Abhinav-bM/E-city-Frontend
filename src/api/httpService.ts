@@ -37,9 +37,11 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     // Manually ensure X-XSRF-TOKEN is set from the cookie if it exists
-    const xsrfToken = getCookie("XSRF-TOKEN");
-    if (xsrfToken) {
-      config.headers["X-XSRF-TOKEN"] = xsrfToken;
+    if (typeof window !== "undefined") {
+      const xsrfToken = getCookie("XSRF-TOKEN");
+      if (xsrfToken) {
+        config.headers["X-XSRF-TOKEN"] = xsrfToken;
+      }
     }
     return config;
   },
@@ -77,16 +79,17 @@ axiosInstance.interceptors.response.use(
           }
         } catch (err) {
           // Clear tokens and logout on refresh failure
-          Auth.logout();
+          if (typeof window !== "undefined") {
+            Auth.logout();
+            // Redirect to login if we're in browser
+            window.location.href = "/login";
+          }
           storeDispatch?.(logoutAction());
           // Call logout API to invalidate refresh token on server
           logoutAPI().catch(() => {
             // Ignore errors - we're already clearing local tokens
           });
-          // Redirect to login if we're in browser
-          if (typeof window !== "undefined") {
-            window.location.href = "/login";
-          }
+
           return Promise.reject(err);
         }
       } else {
