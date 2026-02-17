@@ -29,6 +29,7 @@ export interface BaseProduct {
   description: string;
   specifications: SpecificationGroup[];
   variantAttributes: { name: string; values: string[] }[];
+  images: string[];
 }
 
 export interface ProductData {

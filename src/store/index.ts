@@ -7,6 +7,7 @@ import {
 } from "react-redux";
 import productSlice from "./productSlice";
 import userSlice from "./authSlice";
+import cartSlice from "./cartSlice";
 
 // Create the store
 export const makeStore = () => {
@@ -14,6 +15,7 @@ export const makeStore = () => {
     reducer: {
       product: productSlice,
       user: userSlice,
+      cart: cartSlice,
     },
   });
 };

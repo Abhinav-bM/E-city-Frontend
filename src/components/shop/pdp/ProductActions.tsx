@@ -2,7 +2,9 @@
 
 import React, { useState } from "react";
 import { Variant, BaseProduct } from "./types";
-import { addToCart } from "@/api/cart";
+import { useAppDispatch } from "@/store";
+import { addItemToCartHook } from "@/store/cartSlice";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 interface ProductActionsProps {
@@ -18,35 +20,77 @@ const ProductActions: React.FC<ProductActionsProps> = ({
   const stock = selectedVariant.stock || 0;
   const isOutOfStock = stock === 0;
 
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  // const pathname = usePathname();
+  // const { isAuthenticated } = useAppSelector((state) => state.user);
+
   const handleAddToCart = async () => {
     if (isOutOfStock) return;
-    setIsLoading(true);
-    try {
-      const response = await addToCart(
-        baseProduct.baseProductId,
-        selectedVariant.variantId,
-        1, // Default to 1 for now, or add quantity selector here if needed
-      );
-      if (response.data.data) {
-        toast.success("Added to Cart");
-      }
-    } catch (error) {
-      toast.error("Failed to add to cart");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const handleBuyNow = async () => {
-    // Implement Buy Now logic (usually Add to Cart + Redirect to Checkout)
-    if (isOutOfStock) return;
+    /*
+    if (!isAuthenticated) {
+      toast.error("Please login to add items to cart");
+      router.push(`/login?redirect=${pathname}`);
+      return;
+    }
+    */
+
     setIsLoading(true);
     try {
-      await addToCart(baseProduct.baseProductId, selectedVariant.variantId, 1);
-      window.location.href = "/checkout"; // Or use router.push
-    } catch (error) {
-      toast.error("Failed to process Buy Now");
+      await dispatch(
+        addItemToCartHook({
+          baseProductId: baseProduct.baseProductId,
+          variantId: selectedVariant.variantId,
+          quantity: 1, // Default to 1
+        }),
+      ).unwrap();
+
+      toast.custom((t) => (
+        <div
+          className={`${
+            t.visible ? "animate-enter" : "animate-leave"
+          } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+        >
+          <div className="flex-1 w-0 p-4">
+            <div className="flex items-start">
+              <div className="flex-shrink-0 pt-0.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="h-10 w-10 rounded-full object-cover"
+                  src={
+                    baseProduct.images?.[0]?.url ||
+                    baseProduct.images?.[0] ||
+                    "/placeholder.png"
+                  }
+                  alt=""
+                />
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  Added to Cart
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  {baseProduct.title}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex border-l border-gray-200">
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                router.push("/cart");
+              }}
+              className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              View Cart
+            </button>
+          </div>
+        </div>
+      ));
+    } catch {
+      // Error handled in thunk
     } finally {
       setIsLoading(false);
     }
@@ -83,16 +127,6 @@ const ProductActions: React.FC<ProductActionsProps> = ({
         >
           {isLoading ? "Processing..." : "Add to Bag"}
         </button>
-
-        {!isOutOfStock && (
-          <button
-            onClick={handleBuyNow}
-            disabled={isLoading}
-            className="flex-1 py-4 px-6 rounded-lg font-bold text-sm uppercase tracking-widest border border-slate-200 text-slate-900 hover:bg-slate-50 transition-all"
-          >
-            Buy Now
-          </button>
-        )}
       </div>
 
       {isOutOfStock && (
