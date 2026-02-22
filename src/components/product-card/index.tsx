@@ -15,7 +15,12 @@ const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProps) => {
   const [imageError, setImageError] = useState(false);
 
   // --- Data Processing ---
-  const imageUrl = product?.images?.[0]?.url || product?.images?.[0];
+  // Variant images first, then common (baseImages), then variant nested images
+  const toUrl = (img: any) => (typeof img === "string" ? img : img?.url);
+  const variantImg = toUrl(product?.images?.[0]);
+  const baseImg = toUrl(product?.baseImages?.[0]);
+  const nestedVariantImg = toUrl(product?.variants?.[0]?.images?.[0]);
+  const imageUrl = variantImg || baseImg || nestedVariantImg;
   const hasImage = imageUrl && !imageError;
 
   const sellingPrice = product?.sellingPrice || 0;

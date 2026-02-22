@@ -6,7 +6,6 @@ import {
   fetchCartHook,
   updateItemQuantityHook,
   removeItemHook,
-  clearCartHook,
 } from "@/store/cartSlice";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -17,7 +16,7 @@ import MainWrapper from "@/wrapper/main";
 const CartPage = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { items, totalAmount, totalItems, loading, error } = useAppSelector(
+  const { items, totalAmount, totalItems, loading } = useAppSelector(
     (state) => state.cart,
   );
   const { isAuthenticated, status: userStatus } = useAppSelector(
@@ -118,7 +117,13 @@ const CartPage = () => {
                     {/* Image */}
                     <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-slate-50 rounded-xl overflow-hidden shrink-0 border border-slate-100">
                       <Image
-                        src={baseProduct.images?.[0]?.url || "/placeholder.png"}
+                        src={
+                          variant.images?.[0]?.url ||
+                          variant.images?.[0] ||
+                          baseProduct.images?.[0]?.url ||
+                          baseProduct.images?.[0] ||
+                          "/placeholder.png"
+                        }
                         alt={baseProduct.title}
                         fill
                         className="object-contain p-2"

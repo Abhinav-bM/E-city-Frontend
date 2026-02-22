@@ -3,9 +3,8 @@ import axios from "axios";
 import { API_ENDPOINT as baseURL } from "@/utils/config";
 import Auth from "@/utils/misc";
 import { getCookie } from "typescript-cookie";
-import { AppDispatch } from "@/store";
+import type { AppDispatch } from "@/store";
 import { setUser, logout as logoutAction } from "@/store/authSlice";
-import { logout as logoutAPI } from "./auth";
 
 let storeDispatch: AppDispatch | null = null;
 
@@ -86,9 +85,11 @@ axiosInstance.interceptors.response.use(
           }
           storeDispatch?.(logoutAction());
           // Call logout API to invalidate refresh token on server
-          logoutAPI().catch(() => {
-            // Ignore errors - we're already clearing local tokens
-          });
+          axios
+            .post(`${baseURL}/auth/logout`, {}, { withCredentials: true })
+            .catch(() => {
+              // Ignore errors - we're already clearing local tokens
+            });
 
           return Promise.reject(err);
         }
