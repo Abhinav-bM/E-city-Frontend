@@ -11,6 +11,7 @@ import { toast } from "react-hot-toast";
 interface CartItem {
   _id: string;
   productVariantId: {
+    images: any;
     _id: string;
     baseProductId: {
       _id: string;

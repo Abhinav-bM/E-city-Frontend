@@ -44,12 +44,6 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
     }
   };
 
-  const breadcrumbs = [
-    { label: "Home", href: "/" },
-    { label: "Shop", href: "/shop" },
-    { label: productData.baseProduct.title, href: "#" },
-  ];
-
   return (
     <div className="bg-white min-h-screen pb-20 pt-16 lg:pt-20">
       {/* Breadcrumbs - Ultra Minimal */}
@@ -75,7 +69,23 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
           <div className="lg:col-span-6">
             <div className="sticky top-32">
               <ProductGallery
-                images={selectedVariant.images}
+                images={(() => {
+                  const toUrl = (img: any): string =>
+                    typeof img === "string" ? img : (img?.url ?? "");
+                  const variantUrls = (selectedVariant.images || [])
+                    .map(toUrl)
+                    .filter(Boolean);
+                  // Sort common images: isMain=true first, then the rest
+                  const sortedCommon = [...(baseProduct.images || [])].sort(
+                    (a: any, b: any) =>
+                      (b?.isMain ? 1 : 0) - (a?.isMain ? 1 : 0),
+                  );
+                  const commonUrls = sortedCommon.map(toUrl).filter(Boolean);
+                  // Variant images shown first; common images appended (de-duped)
+                  const seen = new Set(variantUrls);
+                  const extra = commonUrls.filter((u) => !seen.has(u));
+                  return [...variantUrls, ...extra];
+                })()}
                 isRefurbished={selectedVariant.condition !== "New"}
               />
 
