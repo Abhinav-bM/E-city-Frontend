@@ -1,17 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import FilterSidebar from "@/components/shop/FilterSidebar";
 import ShopHeader from "@/components/shop/ShopHeader";
 import ProductCard from "@/components/product-card";
-import ProductRowCard from "@/components/product-card/RowCard";
 import React, { useEffect, useState } from "react";
 import { fetchProducts, selectProduct } from "@/store/productSlice";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { useRouter, useSearchParams } from "next/navigation";
 import { addToCart } from "@/api/cart";
 import toast from "react-hot-toast";
-
 import MobileFilterDrawer from "@/components/shop/MobileFilterDrawer";
 import InfiniteScrollTrigger from "@/components/ui/InfiniteScrollTrigger";
 import ProductCardSkeleton from "@/components/product-card/Skeleton";

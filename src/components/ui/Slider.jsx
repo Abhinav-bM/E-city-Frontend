@@ -69,43 +69,57 @@ const Slider = ({ min = 0, max = 100, value, onChange }) => {
       />
 
       <div className="relative w-full">
-        <div className="absolute w-full h-1.5 bg-slate-200 rounded-full z-[1]"></div>
+        <div className="absolute top-1/2 -translate-y-1/2 w-full h-1.5 bg-slate-200 rounded-full z-[1]"></div>
         <div
           ref={range}
-          className="absolute h-1.5 bg-primary rounded-full z-[2]"
+          className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-gray-900 rounded-full z-[2]"
         ></div>
       </div>
 
       <style jsx>{`
+        /* Make the input itself invisible but keep it in the flow to handle clicks */
+        input[type="range"] {
+          -webkit-appearance: none;
+          appearance: none;
+          background: transparent;
+        }
+
         /* Webkit Thumbs */
         .thumb::-webkit-slider-thumb {
           -webkit-appearance: none;
           -webkit-tap-highlight-color: transparent;
-          pointer-events: auto;
-          height: 18px;
-          width: 18px;
+          pointer-events: all;
+          height: 20px;
+          width: 20px;
           border-radius: 50%;
           background-color: #fff;
-          border: 2px solid #2563eb; /* primary color */
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          cursor: pointer;
-          margin-top: -8px; /* Correct vertical alignment */
+          border: 3px solid #111827; /* gray-900 */
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+          cursor: grab;
           position: relative;
           z-index: 10;
         }
 
+        .thumb:active::-webkit-slider-thumb {
+          cursor: grabbing;
+          transform: scale(1.1);
+        }
+
         /* Firefox Thumbs */
         .thumb::-moz-range-thumb {
-          -webkit-appearance: none;
-          pointer-events: auto;
-          height: 18px;
-          width: 18px;
+          pointer-events: all;
+          height: 14px; /* Account for border in firefox */
+          width: 14px;
           border-radius: 50%;
           background-color: #fff;
-          border: 2px solid #2563eb;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-          cursor: pointer;
-          border: none;
+          border: 3px solid #111827;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+          cursor: grab;
+        }
+
+        .thumb:active::-moz-range-thumb {
+          cursor: grabbing;
+          transform: scale(1.1);
         }
       `}</style>
     </div>
