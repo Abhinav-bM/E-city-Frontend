@@ -8,6 +8,7 @@ import {
 import productSlice from "./productSlice";
 import userSlice from "./authSlice";
 import cartSlice from "./cartSlice";
+import wishlistSlice from "./wishlistSlice";
 
 // Create the store
 export const makeStore = () => {
@@ -16,6 +17,7 @@ export const makeStore = () => {
       product: productSlice,
       user: userSlice,
       cart: cartSlice,
+      wishlist: wishlistSlice,
     },
   });
 };

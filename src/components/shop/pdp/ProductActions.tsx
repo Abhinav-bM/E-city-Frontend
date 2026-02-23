@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Variant, BaseProduct } from "./types";
 import { useAppDispatch } from "@/store";
-import { addItemToCartHook } from "@/store/cartSlice";
+import { addItemToCartHook, setDirectItem } from "@/store/cartSlice";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -201,6 +201,23 @@ const ProductActions: React.FC<ProductActionsProps> = ({
     }
   };
 
+  const handleBuyNow = () => {
+    if (isOutOfStock) return;
+
+    // Store full product details so checkout page can render it
+    dispatch(
+      setDirectItem({
+        productVariantId: selectedVariant.variantId,
+        quantity: 1,
+        product: {
+          ...baseProduct,
+          variant: selectedVariant,
+        },
+      }),
+    );
+    router.push("/checkout");
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Trust Badges - Minimalist Grid */}
@@ -221,6 +238,17 @@ const ProductActions: React.FC<ProductActionsProps> = ({
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
+        <button
+          onClick={handleBuyNow}
+          disabled={isOutOfStock}
+          className={`flex-1 py-4 px-6 rounded-lg font-bold text-sm uppercase tracking-widest transition-all ${
+            isOutOfStock
+              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+              : "bg-primary text-white hover:bg-primary-dark shadow-md"
+          }`}
+        >
+          Buy Now
+        </button>
         <button
           onClick={handleAddToCart}
           disabled={isOutOfStock || isLoading}
