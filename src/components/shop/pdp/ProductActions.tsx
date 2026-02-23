@@ -221,30 +221,30 @@ const ProductActions: React.FC<ProductActionsProps> = ({
   return (
     <div className="flex flex-col gap-6">
       {/* Trust Badges - Minimalist Grid */}
-      <div className="grid grid-cols-2 gap-y-4 gap-x-8 mb-2">
+      <div className="grid grid-cols-2 gap-y-5 gap-x-6 mb-4">
         {[
           { icon: "🛡️", label: "6 Month Warranty" },
           { icon: "🔄", label: "7 Day Replacement" },
           { icon: "🚚", label: "Free Shipping" },
           { icon: "✅", label: "Verified Check" },
         ].map((badge, i) => (
-          <div key={i} className="flex items-center gap-2.5">
-            <span className="text-sm opacity-80">{badge.icon}</span>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest leading-none">
+          <div key={i} className="flex items-center gap-3">
+            <span className="text-base opacity-80">{badge.icon}</span>
+            <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest leading-tight">
               {badge.label}
             </span>
           </div>
         ))}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-4">
         <button
           onClick={handleBuyNow}
           disabled={isOutOfStock}
-          className={`flex-1 py-4 px-6 rounded-lg font-bold text-sm uppercase tracking-widest transition-all ${
+          className={`flex-1 py-4 px-8 rounded-xl font-extrabold text-[13px] uppercase tracking-widest transition-all ${
             isOutOfStock
               ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "bg-primary text-white hover:bg-primary-dark shadow-md"
+              : "bg-slate-900 text-white hover:bg-black shadow-xl shadow-slate-900/20 active:scale-[0.98]"
           }`}
         >
           Buy Now
@@ -252,13 +252,20 @@ const ProductActions: React.FC<ProductActionsProps> = ({
         <button
           onClick={handleAddToCart}
           disabled={isOutOfStock || isLoading}
-          className={`flex-1 py-4 px-6 rounded-lg font-bold text-sm uppercase tracking-widest transition-all ${
+          className={`flex-1 py-4 px-8 rounded-xl font-extrabold text-[13px] uppercase tracking-widest transition-all border-2 flex items-center justify-center gap-2 ${
             isOutOfStock
-              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "bg-slate-900 text-white hover:bg-slate-800"
+              ? "border-slate-100 text-slate-400 bg-slate-50 cursor-not-allowed"
+              : "border-slate-900 text-slate-900 bg-white hover:bg-slate-50 active:scale-[0.98]"
           }`}
         >
-          {isLoading ? "Processing..." : "Add to Bag"}
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <span className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
+              Processing
+            </span>
+          ) : (
+            "Add to Bag"
+          )}
         </button>
       </div>
 

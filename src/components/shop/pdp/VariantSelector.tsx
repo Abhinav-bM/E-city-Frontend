@@ -103,7 +103,7 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
       {/* Dynamic Attributes */}
       {baseProduct.variantAttributes?.map((attr) => (
         <div key={attr.name} className="flex flex-col gap-3">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 mb-2">
             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">
               Select {attr.name}
             </span>
@@ -125,10 +125,10 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                   <button
                     key={option}
                     onClick={() => handleAttributeChange(attr.name, option)}
-                    className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all border ${
+                    className={`px-6 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all border ${
                       isSelected
-                        ? "border-slate-900 bg-slate-900 text-white shadow-md shadow-slate-200"
-                        : "border-slate-100 bg-white text-slate-500 hover:border-slate-200 hover:text-slate-900"
+                        ? "border-slate-900 bg-slate-900 text-white shadow-lg shadow-slate-900/20 ring-1 ring-slate-900 ring-offset-1"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:bg-slate-50"
                     }`}
                   >
                     {option}
@@ -141,10 +141,10 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                 <button
                   key={option}
                   onClick={() => handleAttributeChange(attr.name, option)}
-                  className={`px-5 py-2.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all border ${
+                  className={`px-6 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all border ${
                     isSelected
-                      ? "border-slate-900 bg-slate-900 text-white shadow-md shadow-slate-200"
-                      : "border-slate-100 bg-white text-slate-500 hover:border-slate-200 hover:text-slate-900"
+                      ? "border-slate-900 bg-slate-900 text-white shadow-lg shadow-slate-900/20 ring-1 ring-slate-900 ring-offset-1"
+                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:bg-slate-50"
                   }`}
                 >
                   {option}

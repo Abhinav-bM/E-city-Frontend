@@ -47,8 +47,8 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
   return (
     <div className="bg-white min-h-screen pb-20 pt-16 lg:pt-20">
       {/* Breadcrumbs - Ultra Minimal */}
-      <div className="border-b border-slate-50 sticky top-16 z-20 bg-white/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 lg:px-8 py-3 flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">
+      <div className="border-b border-slate-100/60 sticky top-16 z-20 bg-slate-50/80 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-3.5 flex items-center gap-2.5 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">
           <Link href="/" className="hover:text-slate-900 transition-colors">
             Home
           </Link>
@@ -57,17 +57,17 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
             Shop
           </Link>
           <ChevronRight size={10} className="text-slate-300" />
-          <span className="text-slate-900 truncate max-w-[200px]">
+          <span className="text-slate-800 truncate max-w-[200px]">
             {productData.baseProduct.title}
           </span>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 lg:px-8 mt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+      <div className="max-w-6xl mx-auto px-4 lg:px-8 mt-8 lg:mt-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14">
           {/* Left Column: Gallery */}
-          <div className="lg:col-span-6">
-            <div className="sticky top-32">
+          <div className="lg:col-span-7">
+            <div>
               <ProductGallery
                 images={(() => {
                   const toUrl = (img: any): string =>
@@ -95,27 +95,12 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
                   specifications={baseProduct.specifications}
                 />
               </div>
-
-              <div className="hidden lg:block mt-12">
-                <div className="flex flex-col gap-2 mb-6">
-                  <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-slate-400">
-                    Overview
-                  </span>
-                  <h3 className="text-xl font-bold text-slate-900 tracking-tight">
-                    Product Stories
-                  </h3>
-                </div>
-                <div
-                  className="prose prose-slate max-w-none text-slate-600 leading-relaxed text-sm"
-                  dangerouslySetInnerHTML={{ __html: baseProduct.description }}
-                />
-              </div>
             </div>
           </div>
 
           {/* Right Column: Details & Actions */}
-          <div className="lg:col-span-6">
-            <div className="flex flex-col gap-8">
+          <div className="lg:col-span-5">
+            <div className="flex flex-col gap-8 lg:sticky lg:top-32 pb-8">
               <ProductInfo
                 title={baseProduct.title}
                 variant={selectedVariant}
@@ -138,25 +123,27 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
                 baseProduct={baseProduct}
                 selectedVariant={selectedVariant}
               />
-
-              {/* Mobile Description */}
-              <div className="lg:hidden mt-8 pt-8 border-t border-slate-100">
-                <div className="flex flex-col gap-2 mb-4">
-                  <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-slate-400">
-                    Overview
-                  </span>
-                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">
-                    Product Overview
-                  </h3>
-                </div>
-                <div
-                  className="prose prose-slate max-w-none text-slate-600 leading-relaxed text-sm"
-                  dangerouslySetInnerHTML={{ __html: baseProduct.description }}
-                />
-              </div>
             </div>
           </div>
         </div>
+
+        {/* Global Description Content */}
+        {baseProduct.description && (
+          <div className="mt-16 pt-12 border-t border-slate-100">
+            <div className="flex flex-col gap-2 mb-8">
+              <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-slate-400">
+                Overview
+              </span>
+              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
+                Product Stories
+              </h3>
+            </div>
+            <div
+              className="prose prose-slate max-w-none text-slate-600 leading-relaxed text-[15px]"
+              dangerouslySetInnerHTML={{ __html: baseProduct.description }}
+            />
+          </div>
+        )}
 
         {/* Technical Specifications Section */}
         <div className="mt-16 pt-12 border-t border-slate-100">
