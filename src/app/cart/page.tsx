@@ -112,7 +112,7 @@ const CartPage = () => {
                 return (
                   <div
                     key={item._id}
-                    className="flex flex-col sm:flex-row gap-6 pb-8 border-b border-slate-100 last:border-0"
+                    className="flex flex-col sm:flex-row gap-6 border-b border-slate-100 last:border-0 bg-slate-50 p-4 rounded-xl"
                   >
                     {/* Image */}
                     <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-slate-50 rounded-xl overflow-hidden shrink-0 border border-slate-100">
@@ -126,7 +126,7 @@ const CartPage = () => {
                         }
                         alt={baseProduct.title}
                         fill
-                        className="object-contain p-2"
+                        className="object-contain"
                       />
                     </div>
 
