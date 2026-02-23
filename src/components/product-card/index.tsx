@@ -184,7 +184,7 @@ const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProps) => {
             }}
             disabled={isOutOfStock}
             className={`
-              relative h-9 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-200
+              relative h-9 px-4 rounded-full flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer
               ${
                 isOutOfStock
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"

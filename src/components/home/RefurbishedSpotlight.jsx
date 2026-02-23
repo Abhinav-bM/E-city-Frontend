@@ -30,6 +30,10 @@ const RefurbishedSpotlight = () => {
     fetchRefurbished();
   }, []);
 
+  const _handleAddToCart = (product) => {
+    console.log("Add to cart", product);
+  };
+
   if (loading) {
     return (
       <div className="py-16 bg-blue-50/50">
@@ -83,7 +87,7 @@ const RefurbishedSpotlight = () => {
           </div>
           <Link
             href="/shop?condition=Refurbished"
-            className="group flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+            className="group flex items-center hidden md:block gap-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors"
           >
             Shop all Refurbished
             <span className="group-hover:translate-x-1 transition-transform">
@@ -97,7 +101,7 @@ const RefurbishedSpotlight = () => {
           spaceBetween={24}
           slidesPerView={1}
           breakpoints={{
-            640: { slidesPerView: 2 },
+            0: { slidesPerView: 2 },
             768: { slidesPerView: 3 },
             1024: { slidesPerView: 4 },
           }}
@@ -105,13 +109,22 @@ const RefurbishedSpotlight = () => {
         >
           {products.map((product) => (
             <SwiperSlide key={product._id} className="h-auto">
-              <ProductCard
-                product={product}
-                onAddToCart={() => console.log("Add to cart", product._id)}
-              />
+              <ProductCard product={product} onAddToCart={_handleAddToCart} />
             </SwiperSlide>
           ))}
         </Swiper>
+
+        <Link
+          href="/shop?condition=Refurbished"
+          className="group flex items-center justify-center md:hidden gap-1 text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+        >
+          <span className="group-hover:scale-105 transition-transform duration-300">
+            View more
+          </span>
+          <span className="group-hover:translate-x-1 transition-transform -rotate-45">
+            →
+          </span>
+        </Link>
       </div>
     </div>
   );
