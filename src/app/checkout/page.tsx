@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Script from "next/script";
 import MainWrapper from "@/wrapper/main";
 import { useRouter } from "next/navigation";
@@ -11,12 +11,20 @@ import {
   ShieldCheck,
   CreditCard,
   Banknote,
+  MapPin,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { resetCart } from "@/store/cartSlice";
-import { placeOrder, verifyPayment, handlePaymentFailure } from "@/api/order";
+import {
+  placeOrder,
+  placeDirectOrder,
+  verifyPayment,
+  handlePaymentFailure,
+} from "@/api/order";
+import { getProfile } from "@/api/profile";
 
 declare global {
   interface Window {
@@ -27,12 +35,44 @@ declare global {
 const CheckoutPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { items, totalAmount } = useAppSelector((state) => state.cart);
+  const {
+    items: cartItems,
+    totalAmount: cartTotal,
+    directItem,
+  } = useAppSelector((state) => state.cart);
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "Razorpay">(
     "Razorpay",
   );
+
+  // --- Direct Checkout Logic ---
+  const isDirectCheckout = !!directItem;
+
+  const items = isDirectCheckout
+    ? [
+        {
+          _id: "direct_item",
+          quantity: directItem.quantity,
+          productVariantId: directItem.product.variant,
+          baseProductId: directItem.product,
+        },
+      ]
+    : cartItems;
+
+  const totalAmount = isDirectCheckout
+    ? directItem.quantity *
+      (directItem.product.variant.sellingPrice ||
+        directItem.product.variant.price ||
+        0)
+    : cartTotal;
+
+  // Addresses State
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null,
+  );
+  const [showManualForm, setShowManualForm] = useState(true);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -46,9 +86,65 @@ const CheckoutPage = () => {
     zip: "",
   });
 
+  useEffect(() => {
+    // Fetch user profile to get saved addresses
+    getProfile()
+      .then((res) => {
+        if (res.success && res.data) {
+          // Pre-fill email/phone if available
+          setFormData((prev) => ({
+            ...prev,
+            email: res.data.email || prev.email,
+            phone: res.data.phone || prev.phone,
+          }));
+
+          if (res.data.addresses && res.data.addresses.length > 0) {
+            setSavedAddresses(res.data.addresses);
+            setShowManualForm(false);
+
+            // Auto-select Default address or first one
+            const defaultAddr =
+              res.data.addresses.find((a: any) => a.isDefault) ||
+              res.data.addresses[0];
+            handleSelectAddress(defaultAddr);
+          }
+        }
+      })
+      .catch((err) => console.log("Failed to fetch profile", err));
+  }, []);
+
+  const handleSelectAddress = (addr: any) => {
+    setSelectedAddressId(addr._id);
+    setShowManualForm(false);
+
+    // Split full name into first and last for the payload
+    const nameParts = addr.fullName.split(" ");
+    const fName = nameParts[0];
+    const lName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+
+    setFormData((prev) => ({
+      ...prev,
+      firstName: fName,
+      lastName: lName,
+      phone: addr.phone,
+      address: `${addr.addressLine1} ${addr.addressLine2 || ""}`.trim(),
+      city: addr.city,
+      state: addr.state,
+      zip: addr.postalCode,
+    }));
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSuccessCleanup = () => {
+    if (isDirectCheckout) {
+      dispatch({ type: "cart/clearDirectItem" });
+    } else {
+      dispatch(resetCart());
+    }
   };
 
   // ── Open Razorpay Checkout Popup ─────────────────────────────────────────────
@@ -82,7 +178,7 @@ const CheckoutPage = () => {
             toast.success("Payment successful! Order confirmed.", {
               id: toastId,
             });
-            dispatch(resetCart());
+            handleSuccessCleanup();
             router.push(`/order-success?id=${orderId}`);
           } else {
             toast.error("Payment verification failed.", { id: toastId });
@@ -100,7 +196,7 @@ const CheckoutPage = () => {
           try {
             await handlePaymentFailure(orderId);
           } catch {
-            // silent — order stays pending
+            // silent
           }
           setPendingOrderId(null);
           setIsProcessing(false);
@@ -111,9 +207,7 @@ const CheckoutPage = () => {
         contact: formData.phone,
         email: formData.email || undefined,
       },
-      theme: {
-        color: "#0f172a", // slate-900
-      },
+      theme: { color: "#0f172a" },
     };
 
     const rzp = new window.Razorpay(options);
@@ -123,9 +217,7 @@ const CheckoutPage = () => {
       );
       try {
         await handlePaymentFailure(orderId);
-      } catch {
-        // silent
-      }
+      } catch {}
       setPendingOrderId(null);
       setIsProcessing(false);
     });
@@ -141,7 +233,7 @@ const CheckoutPage = () => {
       !formData.city ||
       !formData.phone
     ) {
-      toast.error("Please fill in all shipping details.");
+      toast.error("Please select or fill in all shipping details.");
       return;
     }
 
@@ -149,7 +241,7 @@ const CheckoutPage = () => {
     const toastId = toast.loading("Processing your order...");
 
     try {
-      const response = await placeOrder({
+      const payload: any = {
         shippingAddress: {
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -160,22 +252,34 @@ const CheckoutPage = () => {
           zip: formData.zip,
         },
         paymentMethod,
-        existingOrderId: pendingOrderId, // pass if retrying
-      });
+        existingOrderId: pendingOrderId,
+      };
+
+      let response;
+      if (isDirectCheckout) {
+        payload.directItems = [
+          {
+            productVariantId: directItem.productVariantId,
+            quantity: directItem.quantity,
+          },
+        ];
+        response = await placeDirectOrder(payload);
+      } else {
+        response = await placeOrder(payload);
+      }
 
       if (response.success) {
         if (paymentMethod === "Razorpay" && response.data.razorpayOrder) {
           // Open Razorpay popup
-          setPendingOrderId(response.data._id); // save it in case it fails and user retries
+          setPendingOrderId(response.data._id);
           toast.dismiss(toastId);
           openRazorpayCheckout(response.data);
-          // Don't setIsProcessing(false) here — Razorpay handles it
           return;
         }
 
-        // COD flow — direct success
+        // COD flow
         toast.success("Order placed successfully!", { id: toastId });
-        dispatch(resetCart());
+        handleSuccessCleanup();
         router.push(`/order-success?id=${response.data._id}`);
       } else {
         toast.error(response.message || "Failed to place order", {
@@ -196,9 +300,9 @@ const CheckoutPage = () => {
   if (items.length === 0) {
     return (
       <MainWrapper>
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 border-t border-slate-100">
           <h2 className="text-xl font-bold text-slate-900">
-            Your cart is empty
+            Nothing to checkout
           </h2>
           <Link
             href="/shop"
@@ -213,7 +317,6 @@ const CheckoutPage = () => {
 
   return (
     <MainWrapper>
-      {/* Load Razorpay SDK */}
       <Script
         src="https://checkout.razorpay.com/v1/checkout.js"
         strategy="lazyOnload"
@@ -225,6 +328,13 @@ const CheckoutPage = () => {
           <div className="flex items-center gap-4 mb-8">
             <Link
               href="/cart"
+              onClick={(e) => {
+                if (isDirectCheckout) {
+                  e.preventDefault();
+                  dispatch({ type: "cart/clearDirectItem" });
+                  router.back();
+                }
+              }}
               className="text-slate-400 hover:text-slate-900 transition-colors"
             >
               <ArrowLeft size={20} />
@@ -235,91 +345,200 @@ const CheckoutPage = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            {/* Left Column: Shipping + Payment */}
+            {/* Left Column */}
             <div className="lg:col-span-7 space-y-8">
-              {/* Shipping Form */}
+              {/* Shipping Address Section */}
               <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-sm border border-slate-100">
-                <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs">
-                    1
-                  </span>
-                  Shipping Information
-                </h2>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
-                      First Name
-                    </label>
-                    <input
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all font-medium text-slate-900 outline-none"
-                      placeholder="John"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
-                      Last Name
-                    </label>
-                    <input
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all font-medium text-slate-900 outline-none"
-                      placeholder="Doe"
-                    />
-                  </div>
-                  <div className="col-span-2 space-y-1">
-                    <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
-                      Address
-                    </label>
-                    <input
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all font-medium text-slate-900 outline-none"
-                      placeholder="123 Tech Street, Apt 4B"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
-                      City
-                    </label>
-                    <input
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all font-medium text-slate-900 outline-none"
-                      placeholder="Mumbai"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
-                      ZIP / Pincode
-                    </label>
-                    <input
-                      name="zip"
-                      value={formData.zip}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all font-medium text-slate-900 outline-none"
-                      placeholder="400001"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
-                      Phone
-                    </label>
-                    <input
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all font-medium text-slate-900 outline-none"
-                      placeholder="+91 98765 43210"
-                    />
-                  </div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs">
+                      1
+                    </span>
+                    Shipping Address
+                  </h2>
                 </div>
+
+                {savedAddresses.length > 0 && (
+                  <div className="mb-6 space-y-3">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Saved Addresses
+                    </p>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {savedAddresses.map((addr) => {
+                        const isSelected = selectedAddressId === addr._id;
+                        return (
+                          <div
+                            key={addr._id}
+                            onClick={() => handleSelectAddress(addr)}
+                            className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                              isSelected
+                                ? "border-slate-900 bg-slate-50 shadow-sm"
+                                : "border-slate-100 hover:border-slate-300"
+                            }`}
+                          >
+                            {isSelected && (
+                              <CheckCircle2
+                                size={18}
+                                className="absolute top-4 right-4 text-slate-900"
+                              />
+                            )}
+                            <div className="flex items-start gap-2">
+                              <MapPin
+                                size={16}
+                                className={`mt-0.5 ${isSelected ? "text-slate-900" : "text-slate-400"}`}
+                              />
+                              <div className="pr-6">
+                                <p className="text-sm font-bold text-slate-900">
+                                  {addr.fullName}
+                                </p>
+                                <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                                  {addr.addressLine1}
+                                  {addr.addressLine2
+                                    ? `, ${addr.addressLine2}`
+                                    : ""}
+                                  <br />
+                                  {addr.city}, {addr.state} {addr.postalCode}
+                                </p>
+                                <p className="text-xs font-medium text-slate-700 mt-2">
+                                  {addr.phone}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {!showManualForm && (
+                      <button
+                        onClick={() => {
+                          setShowManualForm(true);
+                          setSelectedAddressId(null);
+                          setFormData({
+                            firstName: "",
+                            lastName: "",
+                            email: formData.email,
+                            phone: "",
+                            address: "",
+                            city: "",
+                            state: "",
+                            zip: "",
+                          });
+                        }}
+                        className="text-sm font-bold text-emerald-600 hover:underline pt-2 inline-block"
+                      >
+                        + Add a new address
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Manual Entry Form */}
+                {showManualForm && (
+                  <div
+                    className={`space-y-4 ${savedAddresses.length > 0 ? "pt-4 border-t border-slate-100" : ""}`}
+                  >
+                    {savedAddresses.length > 0 && (
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          Add New Address
+                        </p>
+                        <button
+                          onClick={() => setShowManualForm(false)}
+                          className="text-xs text-slate-400 hover:text-slate-900"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
+                          First Name
+                        </label>
+                        <input
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all text-sm font-medium text-slate-900 outline-none"
+                          placeholder="John"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
+                          Last Name
+                        </label>
+                        <input
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all text-sm font-medium text-slate-900 outline-none"
+                          placeholder="Doe"
+                        />
+                      </div>
+                      <div className="col-span-2 space-y-1">
+                        <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
+                          Address
+                        </label>
+                        <input
+                          name="address"
+                          value={formData.address}
+                          onChange={handleInputChange}
+                          className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all text-sm font-medium text-slate-900 outline-none"
+                          placeholder="123 Tech Street, Apt 4B"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
+                          City
+                        </label>
+                        <input
+                          name="city"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all text-sm font-medium text-slate-900 outline-none"
+                          placeholder="Mumbai"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
+                          State
+                        </label>
+                        <input
+                          name="state"
+                          value={formData.state}
+                          onChange={handleInputChange}
+                          className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all text-sm font-medium text-slate-900 outline-none"
+                          placeholder="Maharashtra"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
+                          ZIP / Pincode
+                        </label>
+                        <input
+                          name="zip"
+                          value={formData.zip}
+                          onChange={handleInputChange}
+                          className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all text-sm font-medium text-slate-900 outline-none"
+                          placeholder="400001"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] uppercase font-bold text-slate-500 tracking-wider">
+                          Phone
+                        </label>
+                        <input
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className="w-full p-3 bg-slate-50 rounded-lg border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all text-sm font-medium text-slate-900 outline-none"
+                          placeholder="9876543210"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Payment Method Selector */}
@@ -431,14 +650,34 @@ const CheckoutPage = () => {
             {/* Right Column: Order Summary */}
             <div className="lg:col-span-5">
               <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-sm border border-slate-100 sticky top-24">
-                <h2 className="text-lg font-bold text-slate-900 mb-6">
-                  Order Summary
+                <h2 className="text-lg font-bold text-slate-900 mb-6 flex justify-between items-center">
+                  <span>Order Summary</span>
+                  {isDirectCheckout && (
+                    <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded uppercase tracking-widest border border-blue-200">
+                      Buy Now
+                    </span>
+                  )}
                 </h2>
 
                 <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                  {items.map((item) => {
+                  {items.map((item: any) => {
                     const variant = item.productVariantId;
-                    const baseProduct = variant.baseProductId;
+                    const baseProduct = isDirectCheckout
+                      ? item.baseProductId
+                      : variant.baseProductId;
+                    const isDirectImg =
+                      isDirectCheckout && baseProduct
+                        ? baseProduct.images?.[0]?.url ||
+                          baseProduct.images?.[0]
+                        : null;
+                    const finalImg =
+                      variant.images?.[0]?.url ||
+                      variant.images?.[0] ||
+                      isDirectImg ||
+                      baseProduct?.images?.[0]?.url ||
+                      baseProduct?.images?.[0] ||
+                      "/placeholder.png";
+
                     return (
                       <div
                         key={item._id}
@@ -446,14 +685,8 @@ const CheckoutPage = () => {
                       >
                         <div className="relative w-16 h-16 bg-slate-50 rounded-lg overflow-hidden shrink-0 border border-slate-100">
                           <Image
-                            src={
-                              variant.images?.[0]?.url ||
-                              variant.images?.[0] ||
-                              baseProduct.images?.[0]?.url ||
-                              baseProduct.images?.[0] ||
-                              "/placeholder.png"
-                            }
-                            alt={baseProduct.title}
+                            src={finalImg}
+                            alt={baseProduct?.title || "Product"}
                             fill
                             className="object-contain p-1"
                           />
@@ -463,7 +696,7 @@ const CheckoutPage = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-slate-900 truncate">
-                            {baseProduct.title}
+                            {baseProduct?.title}
                           </p>
                           <p className="text-xs text-slate-500 truncate">
                             {Object.values(variant.attributes || {}).join(
@@ -472,13 +705,11 @@ const CheckoutPage = () => {
                           </p>
                           <div className="flex justify-between items-center mt-1">
                             <span className="text-xs font-bold text-slate-900">
-                              ₹{variant.sellingPrice.toLocaleString()}
+                              ₹
+                              {(
+                                variant.sellingPrice || variant.price
+                              )?.toLocaleString()}
                             </span>
-                            {variant.inventoryType === "Unique" && (
-                              <span className="text-[9px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded border border-amber-100 uppercase font-bold tracking-wider">
-                                Unique
-                              </span>
-                            )}
                           </div>
                         </div>
                       </div>

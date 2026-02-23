@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getCategories } from "@/api/category";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { fetchWishlist } from "@/store/wishlistSlice";
 import {
   ShoppingCart,
   Heart,
@@ -16,27 +18,30 @@ import {
 
 const Navbar = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState([]);
 
-  // Cart state - handle gracefully if redux not fully ready
-  // const cartItems = useAppSelector(selectCartItems) || [];
-  // For now, let's use a safe fallback or check if store exists
-  // The user has `productSlice` in `shop.jsx`, so likely `cartSlice` exists.
-  // I will comment out Redux for now to avoid breaking if not ready, or use a local dummy or try-catch.
-  // Better: use a local state or context if Redux is uncertain, but `shop.jsx` used `useAppSelector`.
-  // Let's assume `useAppSelector` works. I need to find the cart selector name.
-  // I'll stick to a static '0' or local storage for now to be safe, or just `0`.
+  const { isAuthenticated } = useAppSelector((state) => state.user);
+  const { items: wishlistItems } = useAppSelector((state) => state.wishlist);
+
   const cartCount = 0;
+
+  // Global Initializers
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchWishlist());
+      // Could dispatch fetchCartHook here in future too
+    }
+  }, [isAuthenticated, dispatch]);
 
   // Fetch Categories
   useEffect(() => {
     const fetchCats = async () => {
       try {
         const res = await getCategories();
-        // Assuming tree structure or list. Let's take top level.
         setCategories(res.data.data || []);
       } catch (err) {
         console.error("Failed to load categories", err);
@@ -106,10 +111,14 @@ const Navbar = () => {
             <div className="hidden md:flex items-center space-x-6">
               <Link
                 href="/wishlist"
-                className="text-gray-600 hover:text-primary transition-colors relative group"
+                className="text-gray-600 hover:text-red-500 transition-colors relative group"
               >
                 <Heart size={24} />
-                {/* <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span> */}
+                {wishlistItems.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                    {wishlistItems.length}
+                  </span>
+                )}
               </Link>
 
               <Link

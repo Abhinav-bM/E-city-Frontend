@@ -5,6 +5,11 @@ export const placeOrder = async (orderData: any) => {
   return response.data;
 };
 
+export const placeDirectOrder = async (orderData: any) => {
+  const response = await axiosInstance.post("/order/direct", orderData);
+  return response.data;
+};
+
 export const getMyOrders = async () => {
   const response = await axiosInstance.get("/order/my");
   return response.data;

@@ -38,6 +38,11 @@ interface CartState {
   totalItems: number;
   loading: boolean;
   error: string | null;
+  directItem: {
+    productVariantId: string;
+    quantity: number;
+    product?: any;
+  } | null;
 }
 
 const initialState: CartState = {
@@ -46,6 +51,7 @@ const initialState: CartState = {
   totalItems: 0,
   loading: false,
   error: null,
+  directItem: null,
 };
 
 // Async Thunks
@@ -76,7 +82,6 @@ export const addItemToCartHook = createAsyncThunk(
   ) => {
     try {
       const response = await addToCartAPI(baseProductId, variantId, quantity);
-      // toast.success("Added to cart"); // Handled in UI with View Cart action
       return response.data.data;
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to add item");
@@ -136,6 +141,13 @@ const cartSlice = createSlice({
       state.totalAmount = 0;
       state.totalItems = 0;
       state.error = null;
+      state.directItem = null;
+    },
+    setDirectItem: (state, action) => {
+      state.directItem = action.payload;
+    },
+    clearDirectItem: (state) => {
+      state.directItem = null;
     },
   },
   extraReducers: (builder) => {
@@ -197,5 +209,5 @@ const cartSlice = createSlice({
   },
 });
 
-export const { resetCart } = cartSlice.actions;
+export const { resetCart, setDirectItem, clearDirectItem } = cartSlice.actions;
 export default cartSlice.reducer;

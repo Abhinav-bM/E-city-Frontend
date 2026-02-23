@@ -1,9 +1,23 @@
-import httpService from "./httpService";
+import axiosInstance from "./httpService";
 
-export const addToWishlist = (productId: any) => {
-  return httpService.post("/wishlist/add", { product_id: productId });
+// Add product to wishlist
+export const addToWishlist = async (productId: string) => {
+  const response = await axiosInstance.post("/wishlist/add", {
+    product_id: productId,
+  });
+  return response.data;
 };
 
-export const removeFromWishlist = (productId: any) => {
-  return httpService.delete("/wishlist/remove", productId);
+// Remove product from wishlist
+export const removeFromWishlist = async (productId: string) => {
+  const response = await axiosInstance.delete("/wishlist/remove", {
+    data: { product_id: productId },
+  });
+  return response.data;
+};
+
+// Get user wishlist
+export const getWishlist = async () => {
+  const response = await axiosInstance.get("/wishlist");
+  return response.data;
 };
