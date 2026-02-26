@@ -227,6 +227,51 @@ const FilterSidebar = ({ className = "" }) => {
           )}
         </div>
 
+      {/* Condition */}
+      <div className="border-b border-gray-100 py-5">
+        <button
+          className="flex items-center justify-between w-full mb-3 group"
+          onClick={() => toggleSection("condition")}
+        >
+          <span className="font-semibold text-gray-900 text-[15px]">
+            Condition
+          </span>
+          <div
+            className={`transition-transform duration-300 ${
+              expandedSections.condition ? "rotate-180" : ""
+            }`}
+          >
+            <ChevronDown size={18} className="text-gray-400" />
+          </div>
+        </button>
+        {expandedSections.condition && (
+          <div className="space-y-1">
+            {["New", "Open Box", "Refurbished", "Used"].map((condition) => (
+              <label
+                key={condition}
+                className="flex items-center space-x-3 cursor-pointer w-full group py-1.5 px-1 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedConditions.includes(condition)}
+                  onChange={() => toggleCondition(condition)}
+                  className="rounded border-gray-300 text-gray-900 focus:ring-gray-900/20 h-4 w-4 cursor-pointer"
+                />
+                <span
+                  className={`text-sm transition-colors duration-200 ${
+                    selectedConditions.includes(condition)
+                      ? "text-gray-900 font-medium"
+                      : "text-gray-600 group-hover:text-gray-900"
+                  }`}
+                >
+                  {condition}
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
         {/* Price Range */}
         <div className="border-b border-gray-100 py-5">
           <button

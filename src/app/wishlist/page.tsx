@@ -11,13 +11,29 @@ import { useRouter } from "next/navigation";
 const WishlistPage = () => {
   const router = useRouter();
   const { items, loading } = useAppSelector((state) => state.wishlist);
-  const { isAuthenticated } = useAppSelector((state) => state.user);
+  const { isAuthenticated, authCheckComplete } = useAppSelector(
+    (state) => state.user,
+  );
 
   const handleAddToCart = (productId?: string, variantId?: string) => {
     if (productId && variantId) {
       router.push(`/shop/${productId}`); // For now redirect to PDP
     }
   };
+
+  // Show loading while auth is being checked
+  if (!authCheckComplete) {
+    return (
+      <MainWrapper>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="animate-pulse flex flex-col items-center gap-4">
+            <div className="w-12 h-12 bg-slate-200 rounded-full"></div>
+            <div className="h-4 w-32 bg-slate-200 rounded"></div>
+          </div>
+        </div>
+      </MainWrapper>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -34,7 +50,7 @@ const WishlistPage = () => {
             across devices.
           </p>
           <Link
-            href="/login"
+            href="/login?referer=/wishlist"
             className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
           >
             Login / Sign Up
@@ -93,6 +109,7 @@ const WishlistPage = () => {
                 ...product,
                 baseProductId: product._id,
                 sellingPrice: product.price,
+                compareAtPrice: product.actualPrice,
                 images: product.images,
                 isNewArrival: product.isNewArrival,
                 isOnSale: product.isOnSale,

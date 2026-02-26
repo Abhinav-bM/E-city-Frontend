@@ -40,11 +40,21 @@ const CheckoutPage = () => {
     totalAmount: cartTotal,
     directItem,
   } = useAppSelector((state) => state.cart);
+  const { isAuthenticated, authCheckComplete } = useAppSelector(
+    (state) => state.user,
+  );
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "Razorpay">(
     "Razorpay",
   );
+
+  // Auth guard
+  useEffect(() => {
+    if (authCheckComplete && !isAuthenticated) {
+      router.push("/login?referer=/checkout");
+    }
+  }, [authCheckComplete, isAuthenticated, router]);
 
   // --- Direct Checkout Logic ---
   const isDirectCheckout = !!directItem;
@@ -231,7 +241,8 @@ const CheckoutPage = () => {
       !formData.firstName ||
       !formData.address ||
       !formData.city ||
-      !formData.phone
+      !formData.phone ||
+      !formData.zip
     ) {
       toast.error("Please select or fill in all shipping details.");
       return;

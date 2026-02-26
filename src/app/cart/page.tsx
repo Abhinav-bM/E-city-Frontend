@@ -19,22 +19,19 @@ const CartPage = () => {
   const { items, totalAmount, totalItems, loading } = useAppSelector(
     (state) => state.cart,
   );
-  const { isAuthenticated, status: userStatus } = useAppSelector(
+  const { isAuthenticated, authCheckComplete } = useAppSelector(
     (state) => state.user,
   );
 
-  // Initial Fetch & Auth Check
+  // Auth guard — wait for rehydration, then redirect if guest
   useEffect(() => {
-    /*
-    if (userStatus === "idle") return; // Wait for auth check
+    if (!authCheckComplete) return; // Wait for AuthProvider to finish
     if (!isAuthenticated) {
-      router.push("/login?redirect=/cart");
+      router.push("/login?referer=/cart");
       return;
     }
-    */
-
     dispatch(fetchCartHook());
-  }, [dispatch, isAuthenticated, userStatus, router]);
+  }, [dispatch, isAuthenticated, authCheckComplete, router]);
 
   const handleUpdateQty = (
     variantId: string,

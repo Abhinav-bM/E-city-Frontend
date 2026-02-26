@@ -5,6 +5,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 const initialState: User.UserState = {
   user: null,
   isAuthenticated: false,
+  authCheckComplete: false,
   status: SLICE_STATUS.IDLE,
 };
 
@@ -16,25 +17,27 @@ const userSlice = createSlice({
       state,
       action: PayloadAction<{ user?: any; accessToken?: string }>,
     ) => {
-      const { user, accessToken } = action.payload;
+      const { user } = action.payload;
       if (user) {
         state.user = user;
-      } else if (state.user && accessToken) {
-        state.user.access = accessToken;
       }
       state.status = SLICE_STATUS.SUCCESS;
       state.isAuthenticated = true;
     },
-    resetUser: () => initialState,
+    setAuthCheckComplete: (state) => {
+      state.authCheckComplete = true;
+    },
+    resetUser: () => ({ ...initialState, authCheckComplete: true }),
     logout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
       state.status = SLICE_STATUS.IDLE;
-      // Note: Token cleanup is handled in Auth.logout() and logout API call
+      // authCheckComplete stays true — we know the user is logged out
     },
   },
 });
 
-export const { setUser, logout, resetUser } = userSlice.actions;
+export const { setUser, logout, resetUser, setAuthCheckComplete } =
+  userSlice.actions;
 
 export default userSlice.reducer;

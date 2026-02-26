@@ -7,34 +7,35 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get(USER_TOKEN)?.value;
   const pathname = request.nextUrl.pathname;
 
-  // Basic check for token presence
+  // Check if token exists and is valid
   if (token) {
     try {
       const decodedJWT = jwtDecode(token);
       if (decodedJWT && decodedJWT?.exp) {
         const expiryDate = new Date(decodedJWT.exp * 1000);
-        // If expired or close to expiring, send to re-auth to attempt a silent refresh
-        if (new Date() > expiryDate && pathname !== "/re-auth") {
-          return NextResponse.redirect(
-            new URL(
-              `/re-auth?referer=${request.nextUrl.pathname}`,
-              request.url,
-            ),
-          );
+        // If expired — let the request through. The client-side httpService
+        // interceptor will handle the 401 → refresh flow automatically.
+        // No server-side redirect needed.
+        if (new Date() > expiryDate) {
+          // For protected routes with an expired token, let the client-side
+          // AuthProvider + interceptor handle the refresh. If the refresh token
+          // is also expired, the interceptor will redirect to /login.
         }
       }
     } catch (e) {
-      // If token is invalid/not a JWT, we might want to let the backend handle it or redirect
+      // If token is invalid/not a JWT, let the request through — the backend
+      // will return 401 and the interceptor will handle it.
     }
   }
 
-  // Route protection
-  if (protectedRoutes.includes(pathname) && !token) {
+  // Route protection — redirect to login if accessing protected route without a token
+  if (protectedRoutes.some((route) => pathname.startsWith(route)) && !token) {
     return NextResponse.redirect(
       new URL(`/login?referer=${pathname}`, request.url),
     );
   }
 
+  // Prevent logged-in users from accessing auth pages (login/signup)
   if (authRoutes.includes(pathname) && token) {
     const referer = request.nextUrl.searchParams.get("referer") || "/";
     return NextResponse.redirect(new URL(referer, request.url));
