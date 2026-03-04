@@ -3,6 +3,7 @@ import { Provider } from "react-redux";
 import { makeStore, AppStore } from "@/store";
 import React, { useEffect, useRef } from "react";
 import { setStoreDispatch } from "@/api/httpService";
+import AuthProvider from "@/components/auth/AuthProvider";
 
 const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   const storeRef = useRef<AppStore | undefined>(undefined);
@@ -18,7 +19,11 @@ const StoreProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  return <Provider store={storeRef.current}>{children}</Provider>;
+  return (
+    <Provider store={storeRef.current}>
+      <AuthProvider>{children}</AuthProvider>
+    </Provider>
+  );
 };
 
 export default StoreProvider;

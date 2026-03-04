@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
-import MainWrapper from "@/wrapper/main";
 import ShopPage from "@/page-component/shop";
 import Loader from "@/components/ui/Loader";
+import MainWrapper from "@/wrapper/main";
 
 const Page = () => {
   return (

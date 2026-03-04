@@ -111,12 +111,16 @@ const LoginForm: React.FC = () => {
             {({ isSubmitting }) => (
               <Form className="mt-6 flex flex-col w-full">
                 <label htmlFor="phone">Phone</label>
-                <Field
-                  type="tel"
-                  name="phone"
-                  id="phone"
-                  className="mt-1 border rounded-md h-10 px-2"
-                />
+                <Field name="phone">
+                  {({ field }: any) => (
+                    <input
+                      {...field}
+                      type="tel"
+                      id="phone"
+                      className="mt-1 border rounded-md h-10 px-2"
+                    />
+                  )}
+                </Field>
                 <ErrorMessage
                   name="phone"
                   component="div"
@@ -142,12 +146,16 @@ const LoginForm: React.FC = () => {
             {({ isSubmitting }) => (
               <Form className="mt-6 flex flex-col w-full">
                 <label htmlFor="otp">OTP</label>
-                <Field
-                  type="text"
-                  id="otp"
-                  name="otp"
-                  className="mt-1 border rounded-md h-10 px-2"
-                />
+                <Field name="otp">
+                  {({ field }: any) => (
+                    <input
+                      {...field}
+                      type="text"
+                      id="otp"
+                      className="mt-1 border rounded-md h-10 px-2"
+                    />
+                  )}
+                </Field>
                 <ErrorMessage
                   name="otp"
                   component="div"

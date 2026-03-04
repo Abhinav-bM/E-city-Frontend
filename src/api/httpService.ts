@@ -1,7 +1,6 @@
 // Create Axios instance with conditional environment variable access
 import axios from "axios";
 import { API_ENDPOINT as baseURL } from "@/utils/config";
-import Auth from "@/utils/misc";
 import { getCookie } from "typescript-cookie";
 import type { AppDispatch } from "@/store";
 import { setUser, logout as logoutAction } from "@/store/authSlice";
@@ -58,38 +57,43 @@ axiosInstance.interceptors.response.use(
         originalRequest._retry = true;
 
         try {
-          const res = await axios.post(
+          // Attempt silent token refresh using HttpOnly refresh cookie
+          await axios.post(
             `${baseURL}/auth/refresh`,
             {},
             { withCredentials: true },
           );
-          // Handle both response.data and response.data.data structures
-          const responseData = res.data?.data || res.data;
-          const { accessToken } = responseData;
 
-          if (accessToken) {
-            // Even if we use cookies, updating Redux is good for UI state
-            storeDispatch?.(setUser({ accessToken }));
-            return axiosInstance(originalRequest);
-          } else {
-            // If the backend is full HttpOnly, accessToken might not be in body.
-            // If the call succeeded (200), we can just retry.
-            return axiosInstance(originalRequest);
+          // Refresh succeeded — rehydrate user state in Redux
+          try {
+            const meRes = await axios.get(`${baseURL}/auth/me`, {
+              withCredentials: true,
+            });
+            const meData = meRes.data?.data || meRes.data;
+            if (meData?.user) {
+              storeDispatch?.(setUser({ user: meData.user }));
+            }
+          } catch {
+            // /me failed after refresh — unusual but not fatal for the retry
           }
+
+          // Retry the original request with the new cookie
+          return axiosInstance(originalRequest);
         } catch (err) {
-          // Clear tokens and logout on refresh failure
-          if (typeof window !== "undefined") {
-            Auth.logout();
-            // Redirect to login if we're in browser
-            window.location.href = "/login";
-          }
+          // Refresh token also failed — session is truly expired
           storeDispatch?.(logoutAction());
-          // Call logout API to invalidate refresh token on server
+
+          if (typeof window !== "undefined") {
+            // Don't redirect if already on login page (prevents infinite loop)
+            if (!window.location.pathname.startsWith("/login")) {
+              window.location.href = "/login";
+            }
+          }
+
+          // Also tell server to clear cookies
           axios
             .post(`${baseURL}/auth/logout`, {}, { withCredentials: true })
-            .catch(() => {
-              // Ignore errors - we're already clearing local tokens
-            });
+            .catch(() => {});
 
           return Promise.reject(err);
         }

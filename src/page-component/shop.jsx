@@ -108,7 +108,7 @@ const ShopPage = () => {
   };
 
   return (
-    <section className="min-h-screen bg-gray-50">
+    <section className="min-h-screen bg-surface-page pb-20 lg:pb-8">
       {/* Mobile Filter Drawer */}
       <MobileFilterDrawer
         isOpen={isMobileFilterOpen}

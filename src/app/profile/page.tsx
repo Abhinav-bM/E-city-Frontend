@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import MainWrapper from "@/wrapper/main";
 import ProfileSidebar from "@/components/profile/Sidebar";
 import { usePathname } from "next/navigation";
+import MainWrapper from "@/wrapper/main";
 import { getProfile, updateProfile } from "@/api/profile";
 import { Mail, Phone, User, Save, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";

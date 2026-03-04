@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Script from "next/script";
-import MainWrapper from "@/wrapper/main";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import MainWrapper from "@/wrapper/main";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { resetCart } from "@/store/cartSlice";
 import {
@@ -40,11 +40,21 @@ const CheckoutPage = () => {
     totalAmount: cartTotal,
     directItem,
   } = useAppSelector((state) => state.cart);
+  const { isAuthenticated, authCheckComplete } = useAppSelector(
+    (state) => state.user,
+  );
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "Razorpay">(
     "Razorpay",
   );
+
+  // Auth guard
+  useEffect(() => {
+    if (authCheckComplete && !isAuthenticated) {
+      router.push("/login?referer=/checkout");
+    }
+  }, [authCheckComplete, isAuthenticated, router]);
 
   // --- Direct Checkout Logic ---
   const isDirectCheckout = !!directItem;
@@ -231,7 +241,8 @@ const CheckoutPage = () => {
       !formData.firstName ||
       !formData.address ||
       !formData.city ||
-      !formData.phone
+      !formData.phone ||
+      !formData.zip
     ) {
       toast.error("Please select or fill in all shipping details.");
       return;
