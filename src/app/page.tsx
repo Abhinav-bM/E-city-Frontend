@@ -1,24 +1,22 @@
-import MainWrapper from "@/wrapper/main";
 import Hero from "@/components/home/Hero";
+import TrustSignals from "@/components/home/TrustSignals";
 import CategoryCarousel from "@/components/home/CategoryCarousel";
+import ShopByBudget from "@/components/home/ShopByBudget";
 import NewArrivals from "@/components/home/NewArrivals";
 import RefurbishedSpotlight from "@/components/home/RefurbishedSpotlight";
-
-/*
-  Home Page
-   - Hero Section (Main Banner)
-   - Category Carousel (Featured Categories)
-   - New Arrivals (Latest Products)
-   - Refurbished Spotlight (Featured Used Items)
-*/
+import ConditionExplainer from "@/components/home/ConditionExplainer";
+import MainWrapper from "@/wrapper/main";
 
 export default function Home() {
   return (
     <MainWrapper>
-      <CategoryCarousel />
       <Hero />
+      <TrustSignals />
+      <CategoryCarousel />
+      <ShopByBudget />
       <NewArrivals />
       <RefurbishedSpotlight />
+      <ConditionExplainer />
     </MainWrapper>
   );
 }

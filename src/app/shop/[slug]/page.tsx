@@ -1,7 +1,7 @@
 import { getProduct } from "@/api/product";
-import MainWrapper from "@/wrapper/main";
 import ProductMain from "@/components/shop/pdp/ProductMain";
 import { notFound } from "next/navigation";
+import MainWrapper from "@/wrapper/main";
 
 const fetchProduct = async (slug: string) => {
   try {

@@ -33,7 +33,7 @@ const ShopHeader = ({ totalProducts, onFilterClick }) => {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 md:mb-6 bg-surface-card p-3 sm:p-4 rounded-md border border-border-default shadow-xs">
       {/* Left Section: Product Count & Mobile Filter */}
       <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto gap-4">
         <div className="flex items-baseline gap-2 pl-2">
@@ -45,10 +45,9 @@ const ShopHeader = ({ totalProducts, onFilterClick }) => {
           </span>
         </div>
 
-        {/* Mobile Filter Button */}
         <button
           onClick={onFilterClick}
-          className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 text-gray-900 font-semibold text-xs border border-transparent active:scale-95 transition-all"
+          className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-md bg-surface-input text-text-primary font-semibold text-sm border border-border-default active:scale-95 transition-all"
         >
           <Filter size={14} strokeWidth={2.5} />
           <span>Filter</span>
@@ -56,13 +55,13 @@ const ShopHeader = ({ totalProducts, onFilterClick }) => {
       </div>
 
       {/* Center Section: Type Toggle */}
-      <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded-xl w-full sm:w-auto self-center">
+      <div className="flex items-center gap-1 bg-surface-input p-1 rounded-md w-full sm:w-auto self-center">
         <button
           onClick={() => handleTypeChange("new")}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded text-sm font-semibold transition-all duration-300 ${
             currentType === "new"
-              ? "bg-white text-blue-600 shadow-sm ring-1 ring-black/5"
-              : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+              ? "bg-surface-card text-primary shadow-xs ring-1 ring-border-strong"
+              : "text-text-secondary hover:text-text-primary hover:bg-surface-page"
           }`}
         >
           <Package size={16} strokeWidth={currentType === "new" ? 2.5 : 2} />
@@ -70,10 +69,10 @@ const ShopHeader = ({ totalProducts, onFilterClick }) => {
         </button>
         <button
           onClick={() => handleTypeChange("used")}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded text-sm font-semibold transition-all duration-300 ${
             currentType === "used"
-              ? "bg-white text-amber-600 shadow-sm ring-1 ring-black/5"
-              : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+              ? "bg-surface-card text-amber-600 shadow-xs ring-1 ring-border-strong"
+              : "text-text-secondary hover:text-text-primary hover:bg-surface-page"
           }`}
         >
           <RefreshCcw
@@ -97,7 +96,7 @@ const ShopHeader = ({ totalProducts, onFilterClick }) => {
             id="sort"
             value={currentSort}
             onChange={handleSortChange}
-            className="appearance-none w-full sm:w-auto text-sm bg-gray-50 border border-gray-200 rounded-xl py-2.5 pl-9 pr-10 cursor-pointer font-semibold text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all duration-200"
+            className="appearance-none w-full sm:w-auto text-sm bg-surface-input border border-border-default rounded-md py-2 pl-9 pr-10 cursor-pointer font-semibold text-text-primary hover:bg-surface-card hover:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200"
           >
             <option value="newest">Newest First</option>
             <option value="price_asc">Price: Low to High</option>

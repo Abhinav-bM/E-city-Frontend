@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import MainWrapper from "@/wrapper/main";
 import { useAppSelector } from "@/store";
 import ProductCard from "@/components/product-card";
 import { Heart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import MainWrapper from "@/wrapper/main";
 
 const WishlistPage = () => {
   const router = useRouter();

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import MainWrapper from "@/wrapper/main";
 import ProfileSidebar from "@/components/profile/Sidebar";
+import MainWrapper from "@/wrapper/main";
 import { usePathname } from "next/navigation";
 import {
   getProfile,

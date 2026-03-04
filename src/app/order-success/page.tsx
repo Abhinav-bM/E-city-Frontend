@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import MainWrapper from "@/wrapper/main";
 import Link from "next/link";
 import { CheckCircle, ShoppingBag, ArrowRight } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import MainWrapper from "@/wrapper/main";
 
 const OrderSuccessPage = () => {
   const searchParams = useSearchParams();

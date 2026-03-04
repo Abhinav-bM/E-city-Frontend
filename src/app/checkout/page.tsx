@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Script from "next/script";
-import MainWrapper from "@/wrapper/main";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import MainWrapper from "@/wrapper/main";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { resetCart } from "@/store/cartSlice";
 import {
