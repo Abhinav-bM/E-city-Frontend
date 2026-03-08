@@ -121,19 +121,25 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
               if (!isAvailable) return null;
 
               if (attr.name.toLowerCase() === "color") {
-                return (
-                  <button
-                    key={option}
-                    onClick={() => handleAttributeChange(attr.name, option)}
-                    className={`px-6 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all border ${
-                      isSelected
-                        ? "border-slate-900 bg-slate-900 text-white shadow-lg shadow-slate-900/20 ring-1 ring-slate-900 ring-offset-1"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:bg-slate-50"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                );
+                const hex = getColor(option);
+                if (hex) {
+                  return (
+                    <button
+                      key={option}
+                      title={option}
+                      onClick={() => handleAttributeChange(attr.name, option)}
+                      className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                        isSelected
+                          ? "ring-2 ring-slate-900 ring-offset-2 scale-110 shadow-lg shadow-slate-900/20"
+                          : "ring-1 ring-slate-200/60 hover:ring-slate-400 hover:scale-105 shadow-sm"
+                      }`}
+                      style={{ backgroundColor: hex }}
+                    >
+                      {/* Optional Inner shadow for realism */}
+                      <div className="absolute inset-0 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] pointer-events-none"></div>
+                    </button>
+                  );
+                }
               }
 
               // Default Text Option (Size, Storage, or Unknown Color)
@@ -141,10 +147,10 @@ const VariantSelector: React.FC<VariantSelectorProps> = ({
                 <button
                   key={option}
                   onClick={() => handleAttributeChange(attr.name, option)}
-                  className={`px-6 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all border ${
+                  className={`px-6 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-300 border ${
                     isSelected
-                      ? "border-slate-900 bg-slate-900 text-white shadow-lg shadow-slate-900/20 ring-1 ring-slate-900 ring-offset-1"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-slate-400 hover:bg-slate-50"
+                      ? "border-slate-900 bg-slate-900 text-white shadow-[0_8px_20px_rgb(0,0,0,0.15)] ring-1 ring-slate-900 ring-offset-1 scale-[1.02]"
+                      : "border-slate-200/80 bg-white text-slate-600 hover:border-slate-400 hover:bg-slate-50 hover:shadow-sm"
                   }`}
                 >
                   {option}

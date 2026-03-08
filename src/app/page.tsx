@@ -4,7 +4,7 @@ import CategoryCarousel from "@/components/home/CategoryCarousel";
 import ShopByBudget from "@/components/home/ShopByBudget";
 import NewArrivals from "@/components/home/NewArrivals";
 import RefurbishedSpotlight from "@/components/home/RefurbishedSpotlight";
-import ConditionExplainer from "@/components/home/ConditionExplainer";
+// import ConditionExplainer from "@/components/home/ConditionExplainer";
 import MainWrapper from "@/wrapper/main";
 
 export default function Home() {
@@ -16,7 +16,7 @@ export default function Home() {
       <ShopByBudget />
       <NewArrivals />
       <RefurbishedSpotlight />
-      <ConditionExplainer />
+      {/* <ConditionExplainer /> */}
     </MainWrapper>
   );
 }

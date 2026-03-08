@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { Variant, BaseProduct } from "./types";
-import { useAppDispatch } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { addItemToCartHook, setDirectItem } from "@/store/cartSlice";
+import { toggleWishlistItem } from "@/store/wishlistSlice";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -218,6 +219,32 @@ const ProductActions: React.FC<ProductActionsProps> = ({
     router.push("/checkout");
   };
 
+  const wishlistItems = useAppSelector((state) => state.wishlist.items) || [];
+  const isWishlisted = wishlistItems.some(
+    (item: any) =>
+      item.productVariant?._id === selectedVariant.variantId ||
+      item.productVariant === selectedVariant.variantId,
+  );
+
+  const handleToggleWishlist = async () => {
+    try {
+      const resultAction = await dispatch(
+        toggleWishlistItem({
+          variantId: selectedVariant.variantId,
+          isWishlisted,
+        }),
+      ).unwrap();
+
+      if (resultAction.action === "added") {
+        toast.success("Added to Wishlist");
+      } else {
+        toast.success("Removed from Wishlist");
+      }
+    } catch {
+      toast.error("Please login to manage wishlist");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       {/* Trust Badges - Minimalist Grid */}
@@ -237,14 +264,39 @@ const ProductActions: React.FC<ProductActionsProps> = ({
         ))}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Desktop Actions (Hidden on Mobile) */}
+      <div className="hidden lg:flex flex-col sm:flex-row gap-4">
+        <button
+          onClick={handleToggleWishlist}
+          className={`h-14 w-14 shrink-0 rounded-full flex items-center justify-center border-2 transition-all duration-300 active:scale-[0.95] ${
+            isWishlisted
+              ? "border-red-500 bg-red-50 text-red-500 hover:bg-red-100"
+              : "border-slate-200/80 text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50"
+          }`}
+          title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+        >
+          <svg
+            className={`w-6 h-6 transition-all ${isWishlisted ? "fill-current" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            />
+          </svg>
+        </button>
+
         <button
           onClick={handleBuyNow}
           disabled={isOutOfStock}
-          className={`flex-1 py-4 px-8 rounded-xl font-extrabold text-[13px] uppercase tracking-widest transition-all ${
+          className={`flex-1 h-14 rounded-full font-extrabold text-[13px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center ${
             isOutOfStock
               ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "bg-slate-900 text-white hover:bg-black shadow-xl shadow-slate-900/20 active:scale-[0.98]"
+              : "bg-slate-900 text-white hover:bg-black hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:scale-[0.98] ring-1 ring-slate-900"
           }`}
         >
           Buy Now
@@ -252,10 +304,10 @@ const ProductActions: React.FC<ProductActionsProps> = ({
         <button
           onClick={handleAddToCart}
           disabled={isOutOfStock || isLoading}
-          className={`flex-1 py-4 px-8 rounded-xl font-extrabold text-[13px] uppercase tracking-widest transition-all border-2 flex items-center justify-center gap-2 ${
+          className={`group flex-1 h-14 rounded-full font-extrabold text-[13px] uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 border-2 ${
             isOutOfStock
               ? "border-slate-100 text-slate-400 bg-slate-50 cursor-not-allowed"
-              : "border-slate-900 text-slate-900 bg-white hover:bg-slate-50 active:scale-[0.98]"
+              : "border-slate-200/80 text-slate-800 bg-white hover:border-slate-400 hover:bg-slate-50 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:scale-[0.98]"
           }`}
         >
           {isLoading ? (
@@ -264,11 +316,65 @@ const ProductActions: React.FC<ProductActionsProps> = ({
               Processing
             </span>
           ) : (
-            "Add to Bag"
+            <>
+              Add to Bag
+              <span className="transition-transform duration-300 group-hover:translate-x-0.5">
+                →
+              </span>
+            </>
           )}
         </button>
       </div>
 
+      {/* Mobile Sticky Bottom Action Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-t border-slate-200/60 p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] pb-safe">
+        <div className="flex gap-3 max-w-md mx-auto">
+          <button
+            onClick={handleToggleWishlist}
+            className={`h-12 w-12 shrink-0 rounded-full flex items-center justify-center border-2 transition-all active:scale-[0.95] ${
+              isWishlisted
+                ? "border-red-500 bg-red-50 text-red-500"
+                : "border-slate-200 text-slate-500 hover:text-red-500 hover:bg-red-50"
+            }`}
+          >
+            <svg
+              className={`w-5 h-5 ${isWishlisted ? "fill-current" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+          </button>
+
+          {isOutOfStock ? (
+            <button className="flex-1 h-12 bg-slate-100 text-slate-400 rounded-full font-bold text-xs uppercase tracking-widest">
+              Out of Stock
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleAddToCart}
+                disabled={isLoading}
+                className="flex-1 h-12 rounded-full font-bold text-[11px] uppercase tracking-widest border-2 border-slate-900 text-slate-900 bg-white active:scale-[0.98] flex items-center justify-center"
+              >
+                {isLoading ? "Wait..." : "Add to Bag"}
+              </button>
+              <button
+                onClick={handleBuyNow}
+                className="flex-1 h-12 rounded-full font-bold text-[11px] uppercase tracking-widest bg-slate-900 text-white active:scale-[0.98] flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.08)] shadow-slate-900/10"
+              >
+                Buy Now
+              </button>
+            </>
+          )}
+        </div>
+      </div>
       {isOutOfStock && (
         <button className="w-full py-4 bg-slate-100 text-slate-900 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
           Notify Me When Available

@@ -5,10 +5,11 @@ import { Variant } from "./types";
 
 interface ProductInfoProps {
   title: string;
+  brand?: string;
   variant: Variant;
 }
 
-const ProductInfo: React.FC<ProductInfoProps> = ({ title, variant }) => {
+const ProductInfo: React.FC<ProductInfoProps> = ({ title, brand, variant }) => {
   const { price, compareAtPrice, stock } = variant;
 
   const discount =
@@ -20,52 +21,77 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ title, variant }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        {/* Subtle Condition Tag */}
-        <div className="flex items-center gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded-md border border-slate-200 bg-white shadow-sm text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">
-            {variant.condition === "New"
-              ? "Brand New"
-              : variant.condition === "Open Box"
+      <div className="flex flex-col gap-2.5">
+        {brand && (
+          <span className="text-[10px] sm:text-xs uppercase tracking-[0.12em] font-semibold text-slate-400">
+            {brand}
+          </span>
+        )}
+
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] font-extrabold text-slate-900 leading-[1.15] tracking-tight">
+          {title}
+        </h1>
+
+        <div className="flex items-center gap-2 mt-1">
+          {variant.condition === "New" ? (
+            <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-[10px] font-bold text-white uppercase tracking-wider shadow-sm">
+              Brand New
+            </span>
+          ) : (
+            <span className="px-2.5 py-0.5 rounded-full bg-amber-500 text-[10px] font-bold text-white uppercase tracking-wider shadow-sm">
+              {variant.condition === "Open Box"
                 ? "Open Box"
                 : variant.condition === "Refurbished"
                   ? "Certified Refurbished"
                   : "Pre-Owned"}
-          </span>
-        </div>
-
-        <h1 className="text-3xl md:text-4xl lg:text-[2.5rem] font-extrabold text-slate-900 leading-[1.15] tracking-tight">
-          {title}
-        </h1>
-
-        <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">
-          {variant.attributes?.Color && <span>{variant.attributes.Color}</span>}
-          {variant.attributes?.Storage && (
-            <>
-              <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-              <span>{variant.attributes.Storage}</span>
-            </>
+            </span>
           )}
+
+          <div className="flex items-center gap-2 text-slate-400 text-sm font-medium ml-2">
+            {variant.attributes?.Color && (
+              <span>{variant.attributes.Color}</span>
+            )}
+            {variant.attributes?.Storage && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-slate-200"></span>
+                <span>{variant.attributes.Storage}</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="flex flex-col gap-1.5 mt-2">
-        <div className="flex items-end gap-3">
-          <span className="text-[2.5rem] font-extrabold text-slate-900 tracking-[-0.04em] leading-none decoration-slate-900">
-            ₹{price?.toLocaleString()}
+        {compareAtPrice > price && (
+          <span className="text-lg sm:text-xl text-slate-400 line-through font-medium mb-[-6px]">
+            ₹{compareAtPrice?.toLocaleString("en-IN")}
+          </span>
+        )}
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-3xl sm:text-[2.5rem] font-extrabold text-slate-900 tracking-tight leading-none">
+            ₹{price?.toLocaleString("en-IN")}
           </span>
           {compareAtPrice > price && (
-            <span className="text-xl text-slate-400 line-through font-semibold mb-1">
-              ₹{compareAtPrice?.toLocaleString()}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-white bg-rose-500 px-2.5 py-0.5 rounded-full shadow-sm">
+                -{discount}%
+              </span>
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                Save ₹{(compareAtPrice - price).toLocaleString("en-IN")}
+              </span>
+            </div>
           )}
         </div>
 
-        {compareAtPrice > price && (
-          <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">
-            Save {discount}% today
+        <div className="text-[11px] font-medium text-slate-400 flex items-center gap-1.5 mt-1">
+          <span>Inclusive of all taxes</span>
+          <span className="w-1 h-1 rounded-full bg-slate-200"></span>
+          <span className="text-slate-600 font-semibold">
+            {variant.inventoryType === "Unique"
+              ? "Refurbished Unit"
+              : "Standard Retail Unit"}
           </span>
-        )}
+        </div>
       </div>
 
       {/* Stock Status - Minimalist */}

@@ -26,6 +26,7 @@ export interface SpecificationGroup {
 export interface BaseProduct {
   baseProductId: string;
   title: string;
+  brand?: string;
   description: string;
   specifications: SpecificationGroup[];
   variantAttributes: { name: string; values: string[] }[];
