@@ -8,11 +8,15 @@ import { fetchProducts, selectProduct } from "@/store/productSlice";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { useRouter, useSearchParams } from "next/navigation";
 import { addToCart } from "@/api/cart";
+import { getCategories } from "@/api/category";
 import toast from "react-hot-toast";
 import MobileFilterDrawer from "@/components/shop/MobileFilterDrawer";
 import InfiniteScrollTrigger from "@/components/ui/InfiniteScrollTrigger";
 import ProductCardSkeleton from "@/components/product-card/Skeleton";
 import FilterSidebarSkeleton from "@/components/shop/FilterSidebarSkeleton";
+import { SearchX } from "lucide-react";
+
+const PAGE_SIZE = 12;
 
 const ShopPage = () => {
   const dispatch = useAppDispatch();
@@ -23,42 +27,39 @@ const ShopPage = () => {
   const router = useRouter();
 
   const [page, setPage] = useState(1);
+  const [categories, setCategories] = useState([]);
   const isLoading = products.status === "loading";
   const hasMore = products.data.length < (products.filter?.total || 0);
 
-  // Initial Load & Filter Change
+  // Resolve category name from URL param
+  const categoryId = searchParams.get("category");
+  const categoryName =
+    categories.find((c) => c._id === categoryId)?.name || null;
+
+  // Fetch categories once
   useEffect(() => {
-    // Reset page to 1 when filters change
+    const fetchCats = async () => {
+      try {
+        const res = await getCategories();
+        setCategories(res.data?.data || []);
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+      }
+    };
+    fetchCats();
+  }, []);
+
+  // Load products based on filters
+  useEffect(() => {
     const newPage = 1;
     setPage(newPage);
-
-    const type = searchParams.get("type");
 
     const filterPayload = {
       ...Object.fromEntries(searchParams),
       page: newPage,
-      limit: 12,
+      limit: PAGE_SIZE,
       isActive: "true",
     };
-
-    // Remove 'type' from payload to prevent backend from treating it as an attribute filter
-    delete filterPayload.type;
-
-    // Apply strict condition based on type, unless condition is explicitly passed in URL
-    // If URL has 'condition', we respect it (allows filtering within 'Used').
-    // If URL has NO 'condition', we force defaults based on type.
-    if (!searchParams.get("condition")) {
-      if (type === "new") {
-        filterPayload.condition = "New";
-      } else if (type === "used") {
-        filterPayload.condition = "Refurbished,Open Box,Used";
-      }
-    } else if (type === "new" && searchParams.get("condition") !== "New") {
-      // Edge case: User is in "New" mode but URL has "Refurbished"?
-      // We should probably force "New" or let the Condition filter be hidden so this doesn't happen easily.
-      // For safety, if type is new, we might want to enforcement.
-      filterPayload.condition = "New";
-    }
 
     dispatch(fetchProducts(filterPayload));
   }, [dispatch, searchParams]);
@@ -69,28 +70,12 @@ const ShopPage = () => {
     const nextPage = page + 1;
     setPage(nextPage);
 
-    const params = new URLSearchParams(searchParams.toString());
-    const type = params.get("type");
-
     const filterPayload = {
       ...Object.fromEntries(searchParams),
       page: nextPage,
-      limit: 12,
+      limit: PAGE_SIZE,
       isActive: "true",
     };
-
-    // Remove 'type' from payload to prevent backend from treating it as an attribute filter
-    delete filterPayload.type;
-
-    if (!searchParams.get("condition")) {
-      if (type === "new") {
-        filterPayload.condition = "New";
-      } else if (type === "used") {
-        filterPayload.condition = "Refurbished,Open Box,Used";
-      }
-    } else if (type === "new") {
-      filterPayload.condition = "New";
-    }
 
     dispatch(fetchProducts(filterPayload));
   };
@@ -107,84 +92,95 @@ const ShopPage = () => {
     }
   };
 
+  const isInitialLoad = isLoading && products.data.length === 0;
+
   return (
-    <section className="min-h-screen bg-surface-page pb-20 lg:pb-8">
-      {/* Mobile Filter Drawer */}
+    <section className="min-h-screen bg-slate-50/80 pb-20 lg:pb-8">
+      {/* Mobile Filter Bottom Sheet */}
       <MobileFilterDrawer
         isOpen={isMobileFilterOpen}
         onClose={() => setIsMobileFilterOpen(false)}
       />
 
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 custom-padding py-6 md:py-8">
-        {/* Desktop Sidebar - Sticky */}
+      {/* Sidebar + Content side-by-side, tops aligned */}
+      <div className="flex flex-col lg:flex-row lg:items-start gap-5 lg:gap-6 custom-padding py-5 md:py-6">
+        {/* Desktop Sidebar — Sticky, starts at same level as header */}
         <aside className="hidden lg:block w-full lg:w-64 flex-shrink-0">
-          {products.status === "loading" && products.data.length === 0 ? (
-            <FilterSidebarSkeleton />
-          ) : (
-            <FilterSidebar />
-          )}
+          {isInitialLoad ? <FilterSidebarSkeleton /> : <FilterSidebar />}
         </aside>
 
-        {/* Main Content Area */}
+        {/* Main Content Area — header + grid stacked vertically */}
         <main className="flex-1 min-w-0">
-          {/* Shop Header */}
-          <div className="mb-6">
-            <ShopHeader
-              totalProducts={products.filter?.total || 0}
-              onFilterClick={() => setIsMobileFilterOpen(true)}
-            />
-          </div>
+          {/* Shop Header (breadcrumbs + count + chips + sort) */}
+          <ShopHeader
+            totalProducts={products.filter?.total || 0}
+            loadedCount={products.data?.length || 0}
+            categoryName={categoryName}
+            onFilterClick={() => setIsMobileFilterOpen(true)}
+          />
 
           {/* Product Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
-            {products.status === "loading" && products.data.length === 0
-              ? // Skeletons for initial load
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 mt-5">
+            {isInitialLoad
+              ? /* Skeleton grid for initial load */
                 Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="w-full">
+                  <div
+                    key={i}
+                    className="w-full animate-in fade-in"
+                    style={{ animationDelay: `${i * 50}ms` }}
+                  >
                     <ProductCardSkeleton />
                   </div>
                 ))
-              : products.data?.map((prod, i) => {
-                  return (
-                    <div key={`${prod.variantId}-${i}`} className="w-full">
-                      <ProductCard
-                        product={prod}
-                        onAddToCart={_handleAddToCart}
-                      />
-                    </div>
-                  );
-                })}
+              : products.data?.map((prod, i) => (
+                  <div key={`${prod.variantId}-${i}`} className="w-full">
+                    <ProductCard
+                      product={prod}
+                      onAddToCart={_handleAddToCart}
+                    />
+                  </div>
+                ))}
           </div>
+
+          {/* Loading more — appended skeletons */}
+          {isLoading && products.data.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 mt-3 sm:mt-4 md:mt-5">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={`more-${i}`} className="w-full">
+                  <ProductCardSkeleton />
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Empty State */}
           {!isLoading && products.data?.length === 0 && (
-            <div className="col-span-full py-16 text-center">
-              <div className="space-y-4">
-                <svg
-                  className="w-16 h-16 mx-auto text-gray-300"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M20 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 3.5a7.5 7.5 0 0013.15 13.15z"
-                  />
-                </svg>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  No products found
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Try adjusting your filters or search criteria
-                </p>
+            <div className="py-20 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+                <SearchX
+                  size={28}
+                  className="text-slate-300"
+                  strokeWidth={1.5}
+                />
               </div>
+              <h3 className="text-lg font-bold text-slate-800 mb-1">
+                No products found
+              </h3>
+              <p className="text-sm text-slate-400 mb-5 max-w-[280px]">
+                Try adjusting your filters or search criteria to find what
+                you&apos;re looking for
+              </p>
+              <button
+                onClick={() => router.push("/shop")}
+                className="text-sm font-semibold text-slate-600 border border-slate-200 rounded-lg px-5 py-2.5 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 cursor-pointer"
+              >
+                Clear Filters
+              </button>
             </div>
           )}
 
           {/* Infinite Scroll Trigger */}
-          <div className="mt-12">
+          <div className="mt-8">
             <InfiniteScrollTrigger
               onIntersect={loadMore}
               hasMore={hasMore}

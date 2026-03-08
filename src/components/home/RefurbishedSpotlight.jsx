@@ -1,8 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { getProducts } from "@/api/product";
+import { addToCart } from "@/api/cart";
 import ProductCard from "@/components/product-card";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
@@ -30,8 +32,16 @@ const RefurbishedSpotlight = () => {
     fetchRefurbished();
   }, []);
 
-  const _handleAddToCart = (product) => {
-    console.log("Add to cart", product);
+  const _handleAddToCart = async (id, variantId) => {
+    try {
+      const response = await addToCart(id, variantId, 1);
+      if (response.data.data) {
+        toast.success("Product added to Cart");
+      }
+    } catch (error) {
+      toast.error("Error adding product to cart");
+      console.error("Error adding product to cart:", error);
+    }
   };
 
   if (loading) {
@@ -87,7 +97,7 @@ const RefurbishedSpotlight = () => {
           </div>
           <Link
             href="/shop?condition=Refurbished"
-            className="group flex items-center hidden md:block gap-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+            className="group hidden md:flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors"
           >
             Shop all Refurbished
             <span className="group-hover:translate-x-1 transition-transform">

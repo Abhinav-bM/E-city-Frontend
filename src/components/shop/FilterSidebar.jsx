@@ -10,7 +10,7 @@ import Slider from "@/components/ui/Slider";
 import { useAppSelector } from "@/store";
 import { selectProduct } from "@/store/productSlice";
 
-const FilterSidebar = ({ className = "" }) => {
+const FilterSidebar = ({ className = "", hideHeader = false }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { facets } = useAppSelector(selectProduct);
@@ -170,24 +170,25 @@ const FilterSidebar = ({ className = "" }) => {
 
   return (
     <div
-      className={`w-full bg-white rounded-2xl border border-gray-200 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col sticky top-24 max-h-[calc(100vh-120px)] overflow-hidden ${className}`}
+      className={`w-full bg-white rounded-2xl shadow-sm flex flex-col sticky top-24 max-h-[calc(100vh-120px)] overflow-hidden ${className}`}
     >
       {/* Fixed Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white z-10 shrink-0 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.03)] relative">
-        <h2 className="font-bold text-[17px] tracking-tight text-gray-900">
-          Filters
-        </h2>
-        {Array.from(searchParams.keys()).filter((key) => key !== "page")
-          .length > 0 && (
-          <button
-            onClick={clearFilters}
-            className="flex items-center gap-1 text-[11px] text-red-600 hover:text-red-700 font-bold uppercase tracking-wider transition-colors duration-200 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full"
-          >
-            <span>Reset</span>
-            <X size={12} strokeWidth={3} />
-          </button>
-        )}
-      </div>
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white z-10 shrink-0">
+          <h2 className="font-bold text-base tracking-tight text-slate-900">
+            Filters
+          </h2>
+          {Array.from(searchParams.keys()).filter((key) => key !== "page")
+            .length > 0 && (
+            <button
+              onClick={clearFilters}
+              className="text-[11px] text-slate-400 hover:text-slate-700 font-bold uppercase tracking-wider transition-colors duration-200"
+            >
+              Clear All
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-5 pb-6">
@@ -227,50 +228,50 @@ const FilterSidebar = ({ className = "" }) => {
           )}
         </div>
 
-      {/* Condition */}
-      <div className="border-b border-gray-100 py-5">
-        <button
-          className="flex items-center justify-between w-full mb-3 group"
-          onClick={() => toggleSection("condition")}
-        >
-          <span className="font-semibold text-gray-900 text-[15px]">
-            Condition
-          </span>
-          <div
-            className={`transition-transform duration-300 ${
-              expandedSections.condition ? "rotate-180" : ""
-            }`}
+        {/* Condition */}
+        <div className="border-b border-gray-100 py-5">
+          <button
+            className="flex items-center justify-between w-full mb-3 group"
+            onClick={() => toggleSection("condition")}
           >
-            <ChevronDown size={18} className="text-gray-400" />
-          </div>
-        </button>
-        {expandedSections.condition && (
-          <div className="space-y-1">
-            {["New", "Open Box", "Refurbished", "Used"].map((condition) => (
-              <label
-                key={condition}
-                className="flex items-center space-x-3 cursor-pointer w-full group py-1.5 px-1 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedConditions.includes(condition)}
-                  onChange={() => toggleCondition(condition)}
-                  className="rounded border-gray-300 text-gray-900 focus:ring-gray-900/20 h-4 w-4 cursor-pointer"
-                />
-                <span
-                  className={`text-sm transition-colors duration-200 ${
-                    selectedConditions.includes(condition)
-                      ? "text-gray-900 font-medium"
-                      : "text-gray-600 group-hover:text-gray-900"
-                  }`}
+            <span className="font-semibold text-gray-900 text-[15px]">
+              Condition
+            </span>
+            <div
+              className={`transition-transform duration-300 ${
+                expandedSections.condition ? "rotate-180" : ""
+              }`}
+            >
+              <ChevronDown size={18} className="text-gray-400" />
+            </div>
+          </button>
+          {expandedSections.condition && (
+            <div className="space-y-1">
+              {["New", "Open Box", "Refurbished", "Used"].map((condition) => (
+                <label
+                  key={condition}
+                  className="flex items-center space-x-3 cursor-pointer w-full group py-1.5 px-1 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                 >
-                  {condition}
-                </span>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
+                  <input
+                    type="checkbox"
+                    checked={selectedConditions.includes(condition)}
+                    onChange={() => toggleCondition(condition)}
+                    className="rounded border-gray-300 text-gray-900 focus:ring-gray-900/20 h-4 w-4 cursor-pointer"
+                  />
+                  <span
+                    className={`text-sm transition-colors duration-200 ${
+                      selectedConditions.includes(condition)
+                        ? "text-gray-900 font-medium"
+                        : "text-gray-600 group-hover:text-gray-900"
+                    }`}
+                  >
+                    {condition}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Price Range */}
         <div className="border-b border-gray-100 py-5">

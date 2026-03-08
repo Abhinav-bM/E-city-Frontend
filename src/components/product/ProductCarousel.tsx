@@ -1,10 +1,10 @@
 import React from "react";
-import { ProductCardProps } from "./ProductCard";
+import type { ProductCardProduct } from "@/components/product-card/types";
 
 interface ProductCarouselProps {
   title?: string;
   subtitle?: string;
-  products?: ProductCardProps[];
+  products?: ProductCardProduct[];
   className?: string;
   actionLabel?: string;
   actionHref?: string;

@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { getProducts } from "@/api/product";
+import { addToCart } from "@/api/cart";
 import ProductCard from "@/components/product-card";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -8,6 +9,7 @@ import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import toast from "react-hot-toast";
 
 const NewArrivals = () => {
   const [products, setProducts] = useState([]);
@@ -68,6 +70,18 @@ const NewArrivals = () => {
   }
   if (products.length === 0) return null;
 
+  const _handleAddToCart = async (id, variantId) => {
+    try {
+      const response = await addToCart(id, variantId, 1);
+      if (response.data.data) {
+        toast.success("Product added to Cart");
+      }
+    } catch (error) {
+      toast.error("Error adding product to cart");
+      console.error("Error adding product to cart:", error);
+    }
+  };
+
   return (
     <div className="bg-slate-50 py-16">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -108,10 +122,7 @@ const NewArrivals = () => {
         >
           {products.map((product) => (
             <SwiperSlide key={product._id} className="h-auto">
-              <ProductCard
-                product={product}
-                onAddToCart={() => console.log("Add to cart", product._id)}
-              />
+              <ProductCard product={product} onAddToCart={_handleAddToCart} />
             </SwiperSlide>
           ))}
         </Swiper>

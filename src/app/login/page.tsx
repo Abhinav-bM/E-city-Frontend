@@ -1,12 +1,7 @@
 import LoginForm from "@/components/auth/loginForm";
-import MainWrapper from "@/wrapper/main";
 
 const page = () => {
-  return (
-    <MainWrapper>
-      <LoginForm />
-    </MainWrapper>
-  );
+  return <LoginForm />;
 };
 
 export default page;
