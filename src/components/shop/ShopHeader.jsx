@@ -69,7 +69,7 @@ const ShopHeader = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm px-5 py-4 sm:px-6 sm:py-5 space-y-3">
+    <div className="bg-white rounded-2xl shadow-sm px-5 py-4 mt-2 sm:px-6 sm:py-5 space-y-3">
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-1 text-sm text-slate-400">
         <a href="/" className="hover:text-slate-700 transition-colors">
@@ -90,7 +90,7 @@ const ShopHeader = ({
       </nav>
       {/* Row 1: Product count + mobile filter button */}
       <div className="flex items-center justify-between">
-        <p className="text-sm sm:text-base font-semibold text-slate-800">
+        <p className="text-sm sm:text-base font-semibold text-slate-800 !hidden">
           {totalProducts > 0 ? (
             <>
               Showing <span className="font-bold text-slate-900">1–{end}</span>{" "}
