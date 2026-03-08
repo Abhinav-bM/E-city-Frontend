@@ -44,26 +44,29 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       )}
 
       {/* Main Slider */}
-      <div className="relative group bg-white rounded-[2rem] border border-slate-100 shadow-[0_4px_24px_-8px_rgba(0,0,0,0.03)] overflow-hidden transition-all">
+      <div className="relative group bg-white rounded-[2rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden transition-all duration-300">
         <Swiper
-          spaceBetween={10}
+          spaceBetween={0}
           navigation={true}
           pagination={{ clickable: true }}
-          thumbs={{ swiper: thumbsSwiper }}
+          thumbs={{
+            swiper:
+              thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null,
+          }}
           modules={[Pagination, Navigation, Thumbs]}
-          className="w-full aspect-[4/3] md:aspect-square product-gallery-swiper"
+          className="w-full aspect-square product-gallery-swiper"
         >
           {validImages.map((img, index) => (
             <SwiperSlide
               key={index}
-              className="flex items-center justify-center p-8 bg-white"
+              className="flex items-center justify-center bg-white"
             >
-              <div className="relative w-full h-full flex items-center justify-center">
+              <div className="relative w-full h-full p-8 md:p-12 flex items-center justify-center">
                 <Image
                   src={img}
                   alt={`Product View ${index + 1}`}
                   fill
-                  className="object-contain"
+                  className="object-contain hover:scale-105 transition-transform duration-500 ease-out"
                   priority={index === 0}
                 />
               </div>
@@ -73,19 +76,19 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       </div>
 
       {/* Thumbnails */}
-      <div className="hidden md:block mt-2">
+      <div className="hidden lg:block mt-3 px-1">
         <Swiper
           onSwiper={setThumbsSwiper}
-          spaceBetween={12}
-          slidesPerView={6}
+          spaceBetween={16}
+          slidesPerView={5}
           freeMode={true}
           watchSlidesProgress={true}
           modules={[Thumbs]}
-          className="thumbs-gallery px-1 py-2"
+          className="thumbs-gallery py-2"
         >
           {validImages.map((img, index) => (
             <SwiperSlide key={index}>
-              <div className="cursor-pointer border-2 border-transparent ui-selected:border-slate-900 hover:border-slate-300 rounded-xl overflow-hidden transition-all aspect-square bg-white shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] my-2 p-2">
+              <div className="thumb-wrapper cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 aspect-square bg-white border-2 border-transparent hover:border-slate-300/[0.8] p-2 flex items-center justify-center relative shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
                 <div className="relative w-full h-full">
                   <Image
                     src={img}
@@ -104,22 +107,35 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       <style jsx global>{`
         .product-gallery-swiper .swiper-button-next,
         .product-gallery-swiper .swiper-button-prev {
-          color: #0f172a; /* Custom Slate-900 */
-          background-color: transparent;
-          width: 32px;
-          height: 32px;
-          transition: all 0.2s ease;
+          color: #0f172a;
+          background-color: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(8px);
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          border: 1px solid rgba(226, 232, 240, 0.8);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          opacity: 0;
+        }
+
+        .product-gallery-swiper:hover .swiper-button-next,
+        .product-gallery-swiper:hover .swiper-button-prev {
+          opacity: 1;
         }
 
         .product-gallery-swiper .swiper-button-next:hover,
         .product-gallery-swiper .swiper-button-prev:hover {
-          transform: scale(1.1);
+          transform: scale(1.05);
           color: #000000;
+          background-color: #ffffff;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+          border-color: #cbd5e1;
         }
 
         .product-gallery-swiper .swiper-button-next:after,
         .product-gallery-swiper .swiper-button-prev:after {
-          font-size: 12px;
+          font-size: 14px;
           font-weight: 800;
         }
 
@@ -128,13 +144,20 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
           height: 6px;
           background: #cbd5e1;
           opacity: 1;
-          transition: all 0.3s ease;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .product-gallery-swiper .swiper-pagination-bullet-active {
           background: #0f172a;
-          width: 20px;
-          border-radius: 10px;
+          width: 24px;
+          border-radius: 12px;
+        }
+
+        /* Active Thumbnail Styling */
+        .thumbs-gallery .swiper-slide-thumb-active .thumb-wrapper {
+          border-color: #0f172a;
+          box-shadow: 0 8px 30px rgb(0, 0, 0, 0.08);
+          transform: scale(0.98);
         }
       `}</style>
     </div>

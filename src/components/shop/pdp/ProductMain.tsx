@@ -108,6 +108,7 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
             <div className="flex flex-col gap-8 lg:sticky lg:top-32 pb-8">
               <ProductInfo
                 title={baseProduct.title}
+                brand={baseProduct.brand}
                 variant={selectedVariant}
               />
 
