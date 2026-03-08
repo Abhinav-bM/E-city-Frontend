@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import MainWrapper from "@/wrapper/main";
 import {
   ArrowLeft,
   Package,
@@ -166,11 +165,9 @@ const OrderDetailsPage = () => {
 
   if (loading) {
     return (
-      <MainWrapper>
-        <div className="container mx-auto px-4 py-10 max-w-4xl flex items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
-        </div>
-      </MainWrapper>
+      <div className="container mx-auto px-4 py-10 max-w-4xl flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+      </div>
     );
   }
 
@@ -179,8 +176,8 @@ const OrderDetailsPage = () => {
   const cfg = STATUS_CONFIG[order.orderStatus] || STATUS_CONFIG.Placed;
 
   return (
-    <MainWrapper>
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
+    <>
+      <div className="container mx-auto px-4 py-8 md:py-2 max-w-5xl">
         {/* Navigation Breadcrumb */}
         <Link
           href="/profile/orders"
@@ -483,7 +480,7 @@ const OrderDetailsPage = () => {
           </div>
         </div>
       )}
-    </MainWrapper>
+    </>
   );
 };
 
