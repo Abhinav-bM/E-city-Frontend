@@ -105,7 +105,7 @@ const ShopPage = () => {
       {/* Sidebar + Content side-by-side, tops aligned */}
       <div className="flex flex-col lg:flex-row lg:items-start gap-5 lg:gap-6 custom-padding py-5 md:py-6">
         {/* Desktop Sidebar — Sticky, starts at same level as header */}
-        <aside className="hidden lg:block w-full lg:w-64 flex-shrink-0">
+        <aside className="hidden lg:block w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-hide">
           {isInitialLoad ? <FilterSidebarSkeleton /> : <FilterSidebar />}
         </aside>
 

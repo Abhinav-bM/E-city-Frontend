@@ -140,34 +140,6 @@ const FilterSidebar = ({ className = "", hideHeader = false }) => {
     else router.push("/shop");
   };
 
-  // Color Mapping Helper
-  const colorMap = {
-    black: "#000000",
-    white: "#FFFFFF",
-    red: "#EF4444",
-    blue: "#3B82F6",
-    green: "#22C55E",
-    yellow: "#EAB308",
-    purple: "#A855F7",
-    pink: "#EC4899",
-    orange: "#F97316",
-    gray: "#6B7280",
-    grey: "#6B7280",
-    silver: "#E5E7EB",
-    gold: "#FFD700",
-    midnight: "#191970",
-    starlight: "#F8F9EC",
-    "space gray": "#4B4B4B",
-    porcelain: "#F0EFEF",
-    obsidian: "#1A1A1A",
-    titanium: "#878681",
-    natural: "#D4C5B3",
-  };
-  const getColor = (name) => {
-    const k = name.toLowerCase().trim();
-    return colorMap[k] || (name.startsWith("#") ? name : null);
-  };
-
   return (
     <div
       className={`w-full bg-white rounded-2xl shadow-sm flex flex-col sticky top-24 max-h-[calc(100vh-120px)] overflow-hidden ${className}`}
@@ -331,109 +303,9 @@ const FilterSidebar = ({ className = "", hideHeader = false }) => {
         {/* Dynamic Attributes */}
         {Object.entries(attributes).map(([key, values]) => {
           if (!values || values.length === 0) return null;
+          if (key.toLowerCase() === "color") return null;
 
-          const isColor = key.toLowerCase() === "color";
           const isOpen = expandedSections[key] !== false;
-
-          let displayValues = values;
-          let isFamilyMode = false;
-
-          const FAMILY_MAP = {
-            Black: [
-              "Black",
-              "Obsidian",
-              "Midnight",
-              "Charcoal",
-              "Graphite",
-              "Ink",
-              "Space Black",
-              "Phantom Black",
-            ],
-            White: [
-              "White",
-              "Porcelain",
-              "Snow",
-              "Chalk",
-              "Starlight",
-              "Cream",
-              "Pearl",
-              "Ceramic",
-              "Cotton",
-            ],
-            Grey: [
-              "Gray",
-              "Grey",
-              "Space Gray",
-              "Space Grey",
-              "Titanium",
-              "Natural",
-              "Silver",
-              "Platinum",
-              "Hazel",
-              "Ash",
-            ],
-            Blue: [
-              "Blue",
-              "Sierra Blue",
-              "Sky Blue",
-              "Navy",
-              "Pacific Blue",
-              "Alpine Blue",
-              "Bay",
-              "Azure",
-              "Cobalt",
-            ],
-            Green: [
-              "Green",
-              "Midnight Green",
-              "Alpine Green",
-              "Hazel",
-              "Lemongrass",
-              "Mint",
-              "Olive",
-              "Sage",
-              "Emerald",
-            ],
-            Red: ["Red", "Product Red", "Coral", "Rose", "Burgundy", "Crimson"],
-            Gold: ["Gold", "Rose Gold", "Champagne", "Sunset"],
-            Purple: [
-              "Purple",
-              "Deep Purple",
-              "Lilac",
-              "Lavender",
-              "Violet",
-              "Iris",
-              "Plum",
-            ],
-            Yellow: ["Yellow", "Canary", "Lemongrass"],
-            Orange: ["Orange", "Amber"],
-            Brown: ["Brown", "Leather", "Tan", "Bronze"],
-          };
-
-          if (isColor) {
-            isFamilyMode = true;
-            const availableFamilies = new Set();
-            values.forEach((val) => {
-              let foundFamily = false;
-              for (const [family, members] of Object.entries(FAMILY_MAP)) {
-                if (
-                  members
-                    .map((m) => m.toLowerCase())
-                    .includes(val.toLowerCase())
-                ) {
-                  availableFamilies.add(family);
-                  foundFamily = true;
-                  break;
-                }
-              }
-              if (!foundFamily) {
-                availableFamilies.add(
-                  val.charAt(0).toUpperCase() + val.slice(1),
-                );
-              }
-            });
-            displayValues = Array.from(availableFamilies).sort();
-          }
 
           return (
             <div key={key} className="border-b border-gray-100 py-5">
@@ -454,90 +326,11 @@ const FilterSidebar = ({ className = "", hideHeader = false }) => {
               </button>
 
               {isOpen && (
-                <div
-                  className={`${
-                    isColor ? "flex flex-wrap gap-2.5" : "space-y-2"
-                  }`}
-                >
-                  {displayValues.map((val) => {
-                    let isSelected = false;
-
-                    if (isColor && isFamilyMode) {
-                      const currentUrlValues = selectedAttributes[key] || [];
-                      const familyMembers = FAMILY_MAP[val] || [val];
-                      isSelected = familyMembers.some((member) =>
-                        currentUrlValues
-                          .map((v) => v.toLowerCase())
-                          .includes(member.toLowerCase()),
-                      );
-                    } else {
-                      isSelected = (selectedAttributes[key] || []).includes(
-                        val,
-                      );
-                    }
-
-                    if (isColor) {
-                      return (
-                        <button
-                          key={val}
-                          onClick={() => {
-                            if (isFamilyMode) {
-                              const familyMembers = FAMILY_MAP[val] || [val];
-                              const currentFilters =
-                                selectedAttributes[key] || [];
-                              let newFilters;
-                              if (isSelected) {
-                                newFilters = currentFilters.filter(
-                                  (f) =>
-                                    !familyMembers
-                                      .map((m) => m.toLowerCase())
-                                      .includes(f.toLowerCase()),
-                                );
-                              } else {
-                                const toAdd = familyMembers.filter(
-                                  (m) => !currentFilters.includes(m),
-                                );
-                                newFilters = [...currentFilters, ...toAdd];
-                              }
-                              updateFilters({ [key]: newFilters.join(",") });
-                            } else {
-                              toggleAttribute(key, val);
-                            }
-                          }}
-                          className={`group relative w-9 h-9 rounded-full border transition-all duration-200 flex items-center justify-center ${
-                            isSelected
-                              ? "ring-2 ring-gray-900 ring-offset-2 border-transparent scale-110"
-                              : "border-gray-200 hover:border-gray-400 hover:scale-105"
-                          }`}
-                          title={val}
-                          style={{
-                            backgroundColor:
-                              val.toLowerCase() === "white"
-                                ? "#ffffff"
-                                : val.toLowerCase(),
-                          }}
-                        >
-                          {/* Checkmark for selected state */}
-                          {isSelected && (
-                            <div className="bg-white/20 backdrop-blur-[1px] rounded-full p-0.5">
-                              <Check
-                                size={14}
-                                className={`${
-                                  val.toLowerCase() === "white"
-                                    ? "text-black"
-                                    : "text-white"
-                                } drop-shadow-md`}
-                                strokeWidth={3}
-                              />
-                            </div>
-                          )}
-                          {/* Tooltip */}
-                          <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                            {val}
-                          </span>
-                        </button>
-                      );
-                    }
+                <div className="space-y-2">
+                  {values.map((val) => {
+                    const isSelected = (selectedAttributes[key] || []).includes(
+                      val,
+                    );
 
                     return (
                       <label
