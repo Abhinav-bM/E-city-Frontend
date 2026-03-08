@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import MainWrapper from "@/wrapper/main";
 import {
   ShoppingBag,
   Package,
@@ -22,8 +20,6 @@ const formatDate = (iso: string) =>
     month: "short",
     year: "numeric",
   }).format(new Date(iso));
-
-import ProfileSidebar from "@/components/profile/Sidebar";
 
 const STATUS_CONFIG: Record<string, { color: string; icon: React.ReactNode }> =
   {
@@ -120,7 +116,6 @@ const OrderCard = ({ order }: { order: any }) => {
 };
 
 const MyOrdersPage = () => {
-  const pathname = usePathname();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -134,59 +129,49 @@ const MyOrdersPage = () => {
   }, []);
 
   return (
-    <MainWrapper>
-      <div className="container mx-auto px-4 py-10">
-        <div className="flex flex-col md:flex-row gap-8 max-w-5xl mx-auto">
-          <ProfileSidebar pathname={pathname} />
-
-          <main className="flex-1 space-y-5 min-w-0">
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">My Orders</h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Track and review your purchases
-              </p>
-            </div>
-
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-32 bg-slate-100 rounded-2xl animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : orders.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm py-20 flex flex-col items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center">
-                  <ShoppingBag size={36} className="text-slate-200" />
-                </div>
-                <div className="text-center">
-                  <p className="text-base font-bold text-slate-900">
-                    No orders yet
-                  </p>
-                  <p className="text-sm text-slate-500 mt-1">
-                    Start shopping and your orders will appear here.
-                  </p>
-                </div>
-                <Link
-                  href="/shop"
-                  className="mt-2 px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all"
-                >
-                  Browse Products
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {orders.map((order) => (
-                  <OrderCard key={order._id} order={order} />
-                ))}
-              </div>
-            )}
-          </main>
-        </div>
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-xl font-bold text-slate-900">My Orders</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Track and review your purchases
+        </p>
       </div>
-    </MainWrapper>
+
+      {loading ? (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="h-32 bg-slate-100 rounded-2xl animate-pulse"
+            />
+          ))}
+        </div>
+      ) : orders.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm py-20 flex flex-col items-center gap-4">
+          <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center">
+            <ShoppingBag size={36} className="text-slate-200" />
+          </div>
+          <div className="text-center">
+            <p className="text-base font-bold text-slate-900">No orders yet</p>
+            <p className="text-sm text-slate-500 mt-1">
+              Start shopping and your orders will appear here.
+            </p>
+          </div>
+          <Link
+            href="/shop"
+            className="mt-2 px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all"
+          >
+            Browse Products
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order) => (
+            <OrderCard key={order._id} order={order} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

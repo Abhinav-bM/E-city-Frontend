@@ -10,8 +10,10 @@ import {
   RotateCcw,
   ChevronRight,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 
-const ProfileSidebar = ({ pathname }: { pathname: string }) => {
+const ProfileSidebar = () => {
+  const pathname = usePathname();
   const navItems = [
     { label: "Profile", href: "/profile", icon: <User size={18} /> },
     {

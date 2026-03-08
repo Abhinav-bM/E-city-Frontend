@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import MainWrapper from "@/wrapper/main";
 import {
   Package,
   RotateCcw,
@@ -12,7 +10,6 @@ import {
   Banknote,
 } from "lucide-react";
 import { getMyReturns } from "@/api/return";
-import ProfileSidebar from "@/components/profile/Sidebar";
 
 const formatDate = (iso: string) =>
   new Intl.DateTimeFormat("en-IN", {
@@ -138,7 +135,6 @@ const ReturnCard = ({ returnReq }: { returnReq: any }) => {
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 const MyReturnsPage = () => {
-  const pathname = usePathname();
   const [returnRequests, setReturnRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -152,60 +148,52 @@ const MyReturnsPage = () => {
   }, []);
 
   return (
-    <MainWrapper>
-      <div className="container mx-auto px-4 py-10">
-        <div className="flex flex-col md:flex-row gap-8 max-w-5xl mx-auto">
-          <ProfileSidebar pathname={pathname} />
-
-          <main className="flex-1 space-y-5 min-w-0">
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">My Returns</h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Track the status of your return requests
-              </p>
-            </div>
-
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(2)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-40 bg-slate-100 rounded-2xl animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : returnRequests.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm py-20 flex flex-col items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center">
-                  <RotateCcw size={36} className="text-slate-200" />
-                </div>
-                <div className="text-center">
-                  <p className="text-base font-bold text-slate-900">
-                    No return requests
-                  </p>
-                  <p className="text-sm text-slate-500 mt-1">
-                    If you need to return an item, locate the Delivered order in
-                    &quot;My Orders&quot;.
-                  </p>
-                </div>
-                <Link
-                  href="/profile/orders"
-                  className="mt-2 px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all"
-                >
-                  View My Orders
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {returnRequests.map((req) => (
-                  <ReturnCard key={req._id} returnReq={req} />
-                ))}
-              </div>
-            )}
-          </main>
-        </div>
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-xl font-bold text-slate-900">My Returns</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Track the status of your return requests
+        </p>
       </div>
-    </MainWrapper>
+
+      {loading ? (
+        <div className="space-y-4">
+          {[...Array(2)].map((_, i) => (
+            <div
+              key={i}
+              className="h-40 bg-slate-100 rounded-2xl animate-pulse"
+            />
+          ))}
+        </div>
+      ) : returnRequests.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm py-20 flex flex-col items-center gap-4">
+          <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center">
+            <RotateCcw size={36} className="text-slate-200" />
+          </div>
+          <div className="text-center">
+            <p className="text-base font-bold text-slate-900">
+              No return requests
+            </p>
+            <p className="text-sm text-slate-500 mt-1">
+              If you need to return an item, locate the Delivered order in
+              &quot;My Orders&quot;.
+            </p>
+          </div>
+          <Link
+            href="/profile/orders"
+            className="mt-2 px-6 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all"
+          >
+            View My Orders
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {returnRequests.map((req) => (
+            <ReturnCard key={req._id} returnReq={req} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
