@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getCategories } from "@/api/category";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { fetchWishlist } from "@/store/wishlistSlice";
+import { fetchCartHook } from "@/store/cartSlice";
 import {
   ShoppingCart,
   Heart,
@@ -21,6 +22,7 @@ import { getProducts } from "@/api/product";
 
 // Module-level flags — survive component re-mounts during SPA navigation
 let _wishlistFetched = false;
+let _cartFetched = false;
 let _categoriesFetched = false;
 
 const Navbar = () => {
@@ -28,7 +30,7 @@ const Navbar = () => {
   const dispatch = useAppDispatch();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
   // Search states
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -44,14 +46,19 @@ const Navbar = () => {
 
   const { isAuthenticated } = useAppSelector((state) => state.user);
   const { items: wishlistItems } = useAppSelector((state) => state.wishlist);
+  const { totalItems: cartCount } = useAppSelector((state) => state.cart);
 
-  const cartCount = 0;
-
-  // Global Initializers — fetch wishlist once when authenticated
+  // Global Initializers — fetch wishlist/cart once when authenticated
   useEffect(() => {
-    if (isAuthenticated && !_wishlistFetched) {
-      _wishlistFetched = true;
-      dispatch(fetchWishlist());
+    if (isAuthenticated) {
+      if (!_wishlistFetched) {
+        _wishlistFetched = true;
+        dispatch(fetchWishlist());
+      }
+      if (!_cartFetched) {
+        _cartFetched = true;
+        dispatch(fetchCartHook());
+      }
     }
   }, [isAuthenticated, dispatch]);
 
@@ -153,9 +160,11 @@ const Navbar = () => {
     if (!showDropdown || !searchQuery.trim()) return null;
 
     return (
-      <div 
+      <div
         className={`absolute z-50 bg-white border border-gray-100 shadow-xl rounded-xl overflow-hidden ${
-          isMobile ? "top-full left-0 right-0 mt-2" : "top-full left-0 right-0 mt-2"
+          isMobile
+            ? "top-full left-0 right-0 mt-2"
+            : "top-full left-0 right-0 mt-2"
         }`}
       >
         {isSearchLoading ? (
@@ -174,9 +183,9 @@ const Navbar = () => {
                   >
                     <div className="w-10 h-10 rounded-md bg-gray-100 shrink-0 overflow-hidden relative border border-gray-100">
                       {product.images && product.images[0] ? (
-                        <img 
-                          src={product.images[0].url} 
-                          alt={product.title} 
+                        <img
+                          src={product.images[0].url}
+                          alt={product.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                       ) : (
@@ -205,12 +214,12 @@ const Navbar = () => {
               ))}
             </ul>
             <div className="p-2 border-t border-gray-50 bg-gray-50/50">
-               <button
-                  onClick={handleSearchSubmit}
-                  className="w-full py-2 text-xs font-bold text-primary hover:text-primary-dark transition-colors text-center"
-               >
-                 View all results for "{searchQuery}"
-               </button>
+              <button
+                onClick={handleSearchSubmit}
+                className="w-full py-2 text-xs font-bold text-primary hover:text-primary-dark transition-colors text-center"
+              >
+                View all results for "{searchQuery}"
+              </button>
             </div>
           </div>
         ) : (
@@ -244,19 +253,25 @@ const Navbar = () => {
             </div>
 
             {/* Desktop Search */}
-            <div className="hidden md:flex flex-1 max-w-lg mx-8 relative" ref={desktopSearchRef}>
-              <form onSubmit={handleSearchSubmit} className="w-full relative group">
+            <div
+              className="hidden md:flex flex-1 max-w-lg mx-8 relative"
+              ref={desktopSearchRef}
+            >
+              <form
+                onSubmit={handleSearchSubmit}
+                className="w-full relative group"
+              >
                 <input
                   type="text"
                   placeholder="Search for products..."
                   className="w-full bg-gray-100 border-transparent focus:bg-white focus:border-primary/20 focus:ring-2 focus:ring-primary/10 rounded-full py-2.5 pl-5 pr-12 text-sm transition-all outline-none"
                   value={searchQuery}
                   onChange={(e) => {
-                     setSearchQuery(e.target.value);
-                     setShowDropdown(true);
+                    setSearchQuery(e.target.value);
+                    setShowDropdown(true);
                   }}
                   onFocus={() => {
-                     if (searchQuery.trim()) setShowDropdown(true);
+                    if (searchQuery.trim()) setShowDropdown(true);
                   }}
                 />
                 <button
@@ -266,7 +281,7 @@ const Navbar = () => {
                   <Search size={18} />
                 </button>
               </form>
-              
+
               {/* Desktop Dropdown */}
               {renderSearchDropdown(false)}
             </div>
@@ -342,11 +357,11 @@ const Navbar = () => {
                   className="w-full bg-gray-100 p-3 rounded-lg pl-10 outline-none focus:ring-2 focus:ring-primary/20"
                   value={searchQuery}
                   onChange={(e) => {
-                     setSearchQuery(e.target.value);
-                     setShowDropdown(true);
+                    setSearchQuery(e.target.value);
+                    setShowDropdown(true);
                   }}
                   onFocus={() => {
-                     if (searchQuery.trim()) setShowDropdown(true);
+                    if (searchQuery.trim()) setShowDropdown(true);
                   }}
                 />
                 <Search
@@ -355,7 +370,7 @@ const Navbar = () => {
                 />
               </div>
             </form>
-            
+
             {/* Mobile Dropdown */}
             {renderSearchDropdown(true)}
           </div>

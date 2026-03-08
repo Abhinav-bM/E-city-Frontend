@@ -41,24 +41,37 @@ const InfiniteScrollTrigger: React.FC<InfiniteScrollTriggerProps> = ({
   if (!hasMore) return null;
 
   return (
-    <div
-      ref={triggerRef}
-      className="w-full py-12 flex justify-center"
-      style={{ animation: "slideUp 0.4s ease-out" }}
-    >
+    <div ref={triggerRef} className="w-full py-10 flex justify-center">
       {isLoading && (
-        <div className="flex flex-col items-center gap-3">
-          {/* Modern Spinner */}
-          <div className="relative w-10 h-10">
-            <div className="absolute inset-0 rounded-full border-2 border-border/30" />
-            <div
-              className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary"
-              style={{ animation: "spin-slow 1s linear infinite" }}
-            />
-          </div>
-          <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-            Loading more products...
-          </span>
+        <div className="flex items-center gap-1.5">
+          <span
+            className="w-2 h-2 rounded-full bg-slate-300"
+            style={{ animation: "pulse-dot 1.4s ease-in-out infinite" }}
+          />
+          <span
+            className="w-2 h-2 rounded-full bg-slate-300"
+            style={{ animation: "pulse-dot 1.4s ease-in-out 0.2s infinite" }}
+          />
+          <span
+            className="w-2 h-2 rounded-full bg-slate-300"
+            style={{ animation: "pulse-dot 1.4s ease-in-out 0.4s infinite" }}
+          />
+
+          {/* Inline keyframes */}
+          <style jsx>{`
+            @keyframes pulse-dot {
+              0%,
+              80%,
+              100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+              }
+              40% {
+                opacity: 1;
+                transform: scale(1.2);
+              }
+            }
+          `}</style>
         </div>
       )}
     </div>

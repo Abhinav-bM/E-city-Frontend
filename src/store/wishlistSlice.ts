@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getWishlist, addToWishlist, removeFromWishlist } from "@/api/wishlist";
 
 interface WishlistState {
@@ -31,16 +31,18 @@ export const fetchWishlist = createAsyncThunk(
 export const toggleWishlistItem = createAsyncThunk(
   "wishlist/toggleItem",
   async (
-    { productId, isWishlisted }: { productId: string; isWishlisted: boolean },
-    { rejectWithValue },
+    { variantId, isWishlisted }: { variantId: string; isWishlisted: boolean },
+    { dispatch, rejectWithValue },
   ) => {
     try {
       if (isWishlisted) {
-        await removeFromWishlist(productId);
-        return { productId, action: "removed" };
+        await removeFromWishlist(variantId);
+        dispatch(fetchWishlist());
+        return { variantId, action: "removed" };
       } else {
-        const response = await addToWishlist(productId);
-        return { productId, action: "added", item: response.data };
+        const response = await addToWishlist(variantId);
+        dispatch(fetchWishlist());
+        return { variantId, action: "added", item: response.data };
       }
     } catch (err: any) {
       return rejectWithValue(
@@ -73,19 +75,9 @@ const wishlistSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      .addCase(toggleWishlistItem.fulfilled, (state, action) => {
-        if (action.payload.action === "removed") {
-          state.items = state.items.filter(
-            (item) =>
-              (item.productId?._id || item.productId) !==
-              action.payload.productId,
-          );
-        } else if (action.payload.action === "added") {
-          // Typically response returns the full item, or we fetch it later.
-          // For immediate UI update, we push a minimal stub or fetch all.
-          // It's safest to just push what we got:
-          state.items.push(action.payload.item);
-        }
+      .addCase(toggleWishlistItem.fulfilled, () => {
+        // Optimistic/manual array manipulation removed;
+        // We now rely on `dispatch(fetchWishlist())` side-effect explicitly fetching fresh data.
       });
   },
 });

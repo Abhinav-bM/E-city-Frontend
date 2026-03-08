@@ -3,10 +3,34 @@
 import React from "react";
 import { useAppSelector } from "@/store";
 import ProductCard from "@/components/product-card";
+import type { ProductCardProduct } from "@/components/product-card/types";
 import { Heart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MainWrapper from "@/wrapper/main";
+
+/** Map a wishlist item (populated or raw) to the shape ProductCard expects */
+function toProductCardProduct(item: any): ProductCardProduct {
+  const variant = item.variantId || item;
+  return {
+    baseProductId: variant.baseProductId ?? variant._id,
+    variantId: variant._id,
+    title: variant.title ?? "Untitled",
+    slug: variant.slug ?? variant._id,
+    brand: variant.brand,
+    sellingPrice: variant.price ?? variant.sellingPrice ?? 0,
+    actualPrice: variant.actualPrice ?? variant.compareAtPrice,
+    stock: variant.stock ?? 0,
+    condition: variant.condition ?? "New",
+    conditionGrade: variant.conditionGrade,
+    isNewArrival: variant.isNewArrival,
+    images: variant.images ?? [],
+    baseImages: variant.baseImages,
+    variants: variant.variants,
+    variantAttributes: variant.variantAttributes,
+    attributes: variant.attributes,
+  };
+}
 
 const WishlistPage = () => {
   const router = useRouter();
@@ -101,26 +125,12 @@ const WishlistPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {items.map((item) => {
-              // Reconstruct the nested product shape expected by ProductCard
-              const product = item.productId || item;
-              // Provide some mock variants structure since wishlist returns base product
-              const mockProductData = {
-                ...product,
-                baseProductId: product._id,
-                sellingPrice: product.price,
-                compareAtPrice: product.actualPrice,
-                images: product.images,
-                isNewArrival: product.isNewArrival,
-                isOnSale: product.isOnSale,
-                discount: product.discount,
-                variantAttributes: product.attributes,
-              };
-
+            {items.map((item: any) => {
+              const cardProduct = toProductCardProduct(item);
               return (
                 <ProductCard
-                  key={product._id}
-                  product={mockProductData}
+                  key={cardProduct.baseProductId}
+                  product={cardProduct}
                   onAddToCart={handleAddToCart}
                 />
               );

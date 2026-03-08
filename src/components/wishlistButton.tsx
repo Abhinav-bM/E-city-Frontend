@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from "@/store";
 import { toggleWishlistItem } from "@/store/wishlistSlice";
 import { useRouter } from "next/navigation";
 
-const WishlistButton = ({ productId }: { productId: string }) => {
+const WishlistButton = ({ variantId }: { variantId: string }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
 
@@ -16,9 +16,9 @@ const WishlistButton = ({ productId }: { productId: string }) => {
 
   const isProductWishlisted = useMemo(() => {
     return items.some(
-      (item) => (item.productId?._id || item.productId) === productId,
+      (item) => (item.variantId?._id || item.variantId) === variantId,
     );
-  }, [items, productId]);
+  }, [items, variantId]);
 
   const _handleAddToWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -32,7 +32,7 @@ const WishlistButton = ({ productId }: { productId: string }) => {
 
     try {
       await dispatch(
-        toggleWishlistItem({ productId, isWishlisted: isProductWishlisted }),
+        toggleWishlistItem({ variantId, isWishlisted: isProductWishlisted }),
       ).unwrap();
 
       toast.success(

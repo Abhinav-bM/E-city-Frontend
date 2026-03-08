@@ -1,17 +1,17 @@
 import axiosInstance from "./httpService";
 
 // Add product to wishlist
-export const addToWishlist = async (productId: string) => {
+export const addToWishlist = async (variantId: string) => {
   const response = await axiosInstance.post("/wishlist/add", {
-    product_id: productId,
+    variant_id: variantId,
   });
   return response.data;
 };
 
 // Remove product from wishlist
-export const removeFromWishlist = async (productId: string) => {
+export const removeFromWishlist = async (variantId: string) => {
   const response = await axiosInstance.delete("/wishlist/remove", {
-    data: { product_id: productId },
+    data: { variant_id: variantId },
   });
   return response.data;
 };
