@@ -21,6 +21,11 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
   const router = useRouter();
   const { baseProduct, availableVariants } = productData;
 
+  // Scroll to top when this component mounts (i.e., when navigating to product details)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // We initialize state from props, but updating it will trigger navigation
   // or local updates depending on if we have all data.
   const [selectedVariant, setSelectedVariant] = useState<Variant>(

@@ -14,16 +14,24 @@ const InfiniteScrollTrigger: React.FC<InfiniteScrollTriggerProps> = ({
   hasMore,
 }) => {
   const triggerRef = useRef<HTMLDivElement>(null);
+  const onIntersectRef = useRef(onIntersect);
+
+  // Keep ref sync with latest callback to avoid dependency array issues
+  useEffect(() => {
+    onIntersectRef.current = onIntersect;
+  }, [onIntersect]);
 
   useEffect(() => {
+    if (!hasMore || isLoading) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         const first = entries[0];
-        if (first.isIntersecting && hasMore && !isLoading) {
-          onIntersect();
+        if (first.isIntersecting) {
+          onIntersectRef.current();
         }
       },
-      { threshold: 0.1, rootMargin: "100px" },
+      { threshold: 0, rootMargin: "400px" },
     );
 
     const currentTrigger = triggerRef.current;
@@ -36,7 +44,7 @@ const InfiniteScrollTrigger: React.FC<InfiniteScrollTriggerProps> = ({
         observer.unobserve(currentTrigger);
       }
     };
-  }, [onIntersect, hasMore, isLoading]);
+  }, [hasMore, isLoading]);
 
   if (!hasMore) return null;
 
