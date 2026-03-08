@@ -93,7 +93,7 @@ const Hero: React.FC = () => {
                   <p className="text-sm sm:text-base md:text-lg text-white/90 mb-6 md:mb-8 max-w-sm md:max-w-md">
                     {banner.subtitle}
                   </p>
-                  <Link href={banner.link} passHref legacyBehavior>
+                  <Link href={banner.link} passHref>
                     <Button
                       variant="primary"
                       size="lg"
