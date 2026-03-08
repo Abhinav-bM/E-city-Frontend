@@ -47,7 +47,7 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
   return (
     <div className="bg-white min-h-screen pb-20 pt-16 lg:pt-20">
       {/* Breadcrumbs - Ultra Minimal */}
-      <div className="border-b border-slate-100/60 sticky top-16 z-20 bg-slate-50/80 backdrop-blur-md">
+      <div className="border-b border-slate-100/60 sticky top-20 z-20 bg-slate-50/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 lg:px-8 py-3.5 flex items-center gap-2.5 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">
           <Link href="/" className="hover:text-slate-900 transition-colors">
             Home
@@ -57,7 +57,7 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
             Shop
           </Link>
           <ChevronRight size={10} className="text-slate-300" />
-          <span className="text-slate-800 truncate max-w-[200px]">
+          <span className="text-slate-800 truncate">
             {productData.baseProduct.title}
           </span>
         </div>

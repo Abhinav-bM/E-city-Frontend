@@ -1,7 +1,6 @@
 // Create Axios instance with conditional environment variable access
 import axios from "axios";
 import { API_ENDPOINT as baseURL } from "@/utils/config";
-import { getCookie } from "typescript-cookie";
 import type { AppDispatch } from "@/store";
 import { setUser, logout as logoutAction } from "@/store/authSlice";
 
@@ -26,21 +25,11 @@ const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
   withCredentials: true,
-  // Axios built-in CSRF handling (works in browser)
-  xsrfCookieName: "XSRF-TOKEN",
-  xsrfHeaderName: "X-XSRF-TOKEN",
 });
 
-// Request Interceptor (CSRF & Manual Token Handling)
+// Request Interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Manually ensure X-XSRF-TOKEN is set from the cookie if it exists
-    if (typeof window !== "undefined") {
-      const xsrfToken = getCookie("XSRF-TOKEN");
-      if (xsrfToken) {
-        config.headers["X-XSRF-TOKEN"] = xsrfToken;
-      }
-    }
     return config;
   },
   (error) => Promise.reject(error),
@@ -58,16 +47,27 @@ axiosInstance.interceptors.response.use(
 
         try {
           // Attempt silent token refresh using HttpOnly refresh cookie
-          await axios.post(
+          const refreshRes = await axios.post(
             `${baseURL}/auth/refresh`,
             {},
             { withCredentials: true },
           );
 
+          const newCsrfToken =
+            refreshRes.data?.data?.xsrfToken || refreshRes.data?.xsrfToken;
+          if (newCsrfToken) {
+            axiosInstance.defaults.headers.common["X-XSRF-TOKEN"] =
+              newCsrfToken;
+          }
+
           // Refresh succeeded — rehydrate user state in Redux
           try {
             const meRes = await axios.get(`${baseURL}/auth/me`, {
               withCredentials: true,
+              headers: {
+                "X-XSRF-TOKEN":
+                  axiosInstance.defaults.headers.common["X-XSRF-TOKEN"],
+              },
             });
             const meData = meRes.data?.data || meRes.data;
             if (meData?.user) {

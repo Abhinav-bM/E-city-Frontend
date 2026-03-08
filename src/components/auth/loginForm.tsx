@@ -29,17 +29,8 @@ const LoginForm: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Initialize CSRF token on mount
-  React.useEffect(() => {
-    const initCsrf = async () => {
-      try {
-        await getCsrfToken();
-      } catch (err) {
-        console.error("Failed to initialize CSRF token:", err);
-      }
-    };
-    initCsrf();
-  }, []);
+  // CSRF token is now initialized globally in AuthProvider.tsx,
+  // so we don't need a local initCsrf useEffect here anymore.
 
   // Send OTP
   const handleSendPhoneOtp = async (values: { phone: string }) => {
@@ -68,7 +59,13 @@ const LoginForm: React.FC = () => {
       if (response?.data) {
         // Handle both response.data and response.data.data structures
         const responseData = response.data.data || response.data;
-        const { accessToken, user } = responseData;
+        const { accessToken, user, xsrfToken } = responseData;
+
+        if (xsrfToken) {
+          import("@/api/httpService").then(({ default: httpService }) => {
+            httpService.defaults.headers.common["X-XSRF-TOKEN"] = xsrfToken;
+          });
+        }
 
         // Store tokens (Access Token only if provided - Refresh Token is HTTP-only cookie)
         if (accessToken) {
@@ -96,11 +93,29 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <section className="custom-padding my-20 flex justify-center">
-      <div className="border rounded-md p-8 md:p-12 w-[500px]">
-        <h3 className="text-center md:text-2xl font-semibold">Login</h3>
+    <section className="min-h-[70vh] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Dynamic Background Elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-200/50 -z-20"></div>
+      <div className="absolute top-1/4 -right-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10 animate-pulse"></div>
+      <div className="absolute -bottom-32 -left-20 w-[30rem] h-[30rem] bg-indigo-500/5 rounded-full blur-3xl -z-10 animate-pulse shadow-2xl"></div>
 
-        {error && <p className="text-red-500 text-center mt-2">{error}</p>}
+      <div className="w-full max-w-md p-8 sm:p-10 rounded-3xl bg-white/70 backdrop-blur-xl border border-white border-b-gray-200/50 border-r-gray-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-500">
+        <div className="text-center mb-8">
+          <h3 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 mb-2 tracking-tight">
+            {isOtpPage ? "Verify OTP" : "Welcome Back"}
+          </h3>
+          <p className="text-gray-500 font-medium">
+            {isOtpPage
+              ? "Enter the code sent to your phone"
+              : "Please enter your details to continue"}
+          </p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 text-red-500 text-sm p-4 rounded-xl mb-6 border border-red-100 text-center font-medium shadow-sm transition-opacity duration-300">
+            {error}
+          </div>
+        )}
 
         {!isOtpPage ? (
           <Formik
@@ -109,65 +124,104 @@ const LoginForm: React.FC = () => {
             onSubmit={handleSendPhoneOtp}
           >
             {({ isSubmitting }) => (
-              <Form className="mt-6 flex flex-col w-full">
-                <label htmlFor="phone">Phone</label>
-                <Field name="phone">
-                  {({ field }: any) => (
-                    <input
-                      {...field}
-                      type="tel"
-                      id="phone"
-                      className="mt-1 border rounded-md h-10 px-2"
-                    />
-                  )}
-                </Field>
-                <ErrorMessage
-                  name="phone"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
+              <Form className="flex flex-col w-full group">
+                <div className="space-y-1">
+                  <label
+                    htmlFor="phone"
+                    className="text-sm font-semibold text-gray-700 ml-1"
+                  >
+                    Phone Number
+                  </label>
+                  <Field name="phone">
+                    {({ field }: any) => (
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
+                          +91
+                        </span>
+                        <input
+                          {...field}
+                          type="tel"
+                          id="phone"
+                          placeholder="9876543210"
+                          className="w-full bg-white/50 border border-gray-200 rounded-xl h-14 pl-12 pr-4 text-gray-800 font-medium transition-all duration-300 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none hover:border-gray-300 shadow-sm"
+                        />
+                      </div>
+                    )}
+                  </Field>
+                  <ErrorMessage
+                    name="phone"
+                    component="div"
+                    className="text-red-500 text-xs mt-1 ml-1 font-medium select-none"
+                  />
+                </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting || loading}
-                  className="w-full bg-primary text-white rounded-md py-2 mt-4 disabled:opacity-50"
+                  className="w-full bg-gradient-to-tr from-primary to-primary/80 hover:to-primary text-white font-semibold rounded-xl h-14 mt-8 transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3 relative overflow-hidden"
                 >
-                  {loading ? "Sending OTP..." : "Get OTP"}
+                  {loading ? (
+                    <span className="animate-spin h-5 w-5 border-2 border-white/30 border-t-white rounded-full"></span>
+                  ) : (
+                    "Get OTP"
+                  )}
                 </button>
               </Form>
             )}
           </Formik>
         ) : (
           <Formik
-            initialValues={{ otp: "" }}
+            initialValues={{ otp: "123456" }} // Pre-filled for development
             validationSchema={OtpSchema}
             onSubmit={handleVerifyOtp}
           >
             {({ isSubmitting }) => (
-              <Form className="mt-6 flex flex-col w-full">
-                <label htmlFor="otp">OTP</label>
-                <Field name="otp">
-                  {({ field }: any) => (
-                    <input
-                      {...field}
-                      type="text"
-                      id="otp"
-                      className="mt-1 border rounded-md h-10 px-2"
-                    />
-                  )}
-                </Field>
-                <ErrorMessage
-                  name="otp"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
+              <Form className="flex flex-col w-full transition-opacity duration-500">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center ml-1">
+                    <label
+                      htmlFor="otp"
+                      className="text-sm font-semibold text-gray-700"
+                    >
+                      One Time Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsOtpPage(false)}
+                      className="text-xs text-primary font-semibold hover:underline"
+                    >
+                      Change Phone?
+                    </button>
+                  </div>
+                  <Field name="otp">
+                    {({ field }: any) => (
+                      <input
+                        {...field}
+                        type="text"
+                        id="otp"
+                        placeholder="• • • • • •"
+                        className="w-full bg-white/50 font-mono tracking-[0.5em] text-center border border-gray-200 rounded-xl h-14 px-4 text-gray-800 text-lg transition-all duration-300 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none hover:border-gray-300 shadow-sm"
+                        maxLength={6}
+                      />
+                    )}
+                  </Field>
+                  <ErrorMessage
+                    name="otp"
+                    component="div"
+                    className="text-red-500 text-xs mt-1 ml-1 font-medium select-none"
+                  />
+                </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting || loading}
-                  className="w-full bg-primary text-white rounded-md py-2 mt-4 disabled:opacity-50"
+                  className="w-full bg-gradient-to-tr from-primary to-primary/80 hover:to-primary text-white font-semibold rounded-xl h-14 mt-8 transition-all duration-300 hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3"
                 >
-                  {loading ? "Verifying OTP..." : "Submit OTP"}
+                  {loading ? (
+                    <span className="animate-spin h-5 w-5 border-2 border-white/30 border-t-white rounded-full"></span>
+                  ) : (
+                    "Verify & Login"
+                  )}
                 </button>
               </Form>
             )}

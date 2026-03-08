@@ -17,9 +17,10 @@ export const getNewToken = async () => {
   return httpService.post("/auth/refresh", {}, { withCredentials: true });
 };
 
-// CSRF Handshake - gets the initial XSRF-TOKEN cookie
+// CSRF Handshake - gets the initial xsrf token in-memory
 export const getCsrfToken = async () => {
-  return httpService.get("/auth/csrf");
+  const res = await httpService.get("/auth/csrf");
+  return res.data?.data?.xsrfToken || res.data?.xsrfToken;
 };
 
 // Get current user — checks if user is authenticated via HttpOnly cookie
