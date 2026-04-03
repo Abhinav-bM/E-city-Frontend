@@ -62,7 +62,7 @@ const ShopPage = () => {
     };
 
     dispatch(fetchProducts(filterPayload));
-  }, [dispatch, searchParams]);
+  }, [dispatch, searchParams.toString()]); // Using .toString() for stable dependency
 
   const loadMore = () => {
     if (!hasMore || isLoading) return;
@@ -100,13 +100,18 @@ const ShopPage = () => {
       <MobileFilterDrawer
         isOpen={isMobileFilterOpen}
         onClose={() => setIsMobileFilterOpen(false)}
+        categories={categories}
       />
 
       {/* Sidebar + Content side-by-side, tops aligned */}
       <div className="flex flex-col lg:flex-row lg:items-start gap-5 lg:gap-6 custom-padding py-5 md:py-6">
         {/* Desktop Sidebar — Sticky, starts at same level as header */}
         <aside className="hidden lg:block w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-hide">
-          {isInitialLoad ? <FilterSidebarSkeleton /> : <FilterSidebar />}
+          {isInitialLoad ? (
+            <FilterSidebarSkeleton />
+          ) : (
+            <FilterSidebar categories={categories} />
+          )}
         </aside>
 
         {/* Main Content Area — header + grid stacked vertically */}

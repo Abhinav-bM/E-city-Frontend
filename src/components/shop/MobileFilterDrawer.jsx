@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import FilterSidebar from "./FilterSidebar";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const MobileFilterDrawer = ({ isOpen, onClose }) => {
+const MobileFilterDrawer = ({ isOpen, onClose, categories }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isVisible, setIsVisible] = useState(false);
@@ -74,6 +74,7 @@ const MobileFilterDrawer = ({ isOpen, onClose }) => {
           <FilterSidebar
             hideHeader
             className="border-none shadow-none bg-transparent rounded-none max-h-none static"
+            categories={categories}
           />
         </div>
 

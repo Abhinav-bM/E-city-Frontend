@@ -21,10 +21,10 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
   const router = useRouter();
   const { baseProduct, availableVariants } = productData;
 
-  // Scroll to top when this component mounts (i.e., when navigating to product details)
+  // Scroll to top when the variant changes
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [productData.currentVariant.slug]);
 
   // We initialize state from props, but updating it will trigger navigation
   // or local updates depending on if we have all data.
@@ -41,7 +41,7 @@ const ProductMain: React.FC<ProductMainProps> = ({ productData }) => {
     if (variant.slug && variant.slug !== selectedVariant.slug) {
       // Optimistic update for immediate visual feedback
       setSelectedVariant(variant);
-      router.push(`/shop/${variant.slug}`);
+      router.replace(`/shop/${variant.slug}`);
     } else if (variant.variantId !== selectedVariant.variantId) {
       // Same slug but different internal ID? (Unlikely but possible for specific units if they share slug)
       // If they share slug, we must update state locally.

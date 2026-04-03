@@ -10,12 +10,17 @@ import Slider from "@/components/ui/Slider";
 import { useAppSelector } from "@/store";
 import { selectProduct } from "@/store/productSlice";
 
-const FilterSidebar = ({ className = "", hideHeader = false }) => {
+const FilterSidebar = ({
+  className = "",
+  hideHeader = false,
+  categories = [],
+}) => {
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const { facets } = useAppSelector(selectProduct);
 
-  const [categories, setCategories] = useState([]);
+
 
   // State for filter values
   const [priceRange, setPriceRange] = useState([0, 5000]);
@@ -78,17 +83,6 @@ const FilterSidebar = ({ className = "", hideHeader = false }) => {
     setSelectedAttributes(newSelectedAttributes);
   }, [searchParams, facets, minPrice, maxPrice]);
 
-  useEffect(() => {
-    const fetchCats = async () => {
-      try {
-        const res = await getCategories();
-        setCategories(res.data.data || []);
-      } catch (err) {
-        console.error("Failed to load categories", err);
-      }
-    };
-    fetchCats();
-  }, []);
 
   const updateFilters = (newParams) => {
     const params = new URLSearchParams(searchParams.toString());
