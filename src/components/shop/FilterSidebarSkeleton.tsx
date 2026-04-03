@@ -1,6 +1,6 @@
 import React from "react";
 
-const FilterSidebarSkeleton = () => {
+const FilterSidebarSkeleton: React.FC = () => {
   return (
     <div className="w-full bg-white rounded-2xl shadow-sm p-5 space-y-4 sticky top-24">
       {/* Header */}

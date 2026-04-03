@@ -1,146 +1,156 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import React from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/effect-fade";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui";
+import { ArrowRight, ChevronRight } from "lucide-react";
 
-const banners = [
-  {
-    id: 1,
-    title: "iPhone 15 Pro",
-    subtitle: "Titanium. So strong. So light. So Pro.",
-    image:
-      "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=1200&auto=format&fit=crop",
-    ctaText: "Shop New",
-    link: "/shop?category=smartphones",
-    color: "bg-navy-900 text-white",
-  },
-  {
-    id: 2,
-    title: "Premium Refurbished",
-    subtitle: "Like new, but better for your wallet. 32-point inspection.",
-    image:
-      "https://images.unsplash.com/photo-1605236453806-6ff36851218e?q=80&w=1200&auto=format&fit=crop",
-    ctaText: "Shop Refurbished",
-    link: "/shop?condition=refurbished",
-    color: "bg-surface-page text-navy-900",
-  },
-  {
-    id: 3,
-    title: "MacBook Air M3",
-    subtitle: "Lean. Mean. M3 machine.",
-    image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1200&auto=format&fit=crop",
-    ctaText: "Explore Laptops",
-    link: "/shop?category=laptops",
-    color: "bg-navy-800 text-white",
-  },
-];
+interface Slide {
+  id: number;
+  image: string;
+  title: string;
+  subtitle: string;
+  accent: string;
+  link: string;
+  color: string;
+}
 
 const Hero: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  // Auto-advance
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % banners.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const nextSlide = () =>
-    setCurrentSlide((prev) => (prev + 1) % banners.length);
-  const prevSlide = () =>
-    setCurrentSlide((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
+  const slides: Slide[] = [
+    {
+      id: 1,
+      image:
+        "https://images.unsplash.com/photo-1550009158-9ebf69173e03?q=80&w=2001&auto=format&fit=crop",
+      title: "Next-Gen Electronics",
+      subtitle: "Upgrade your lifestyle with the latest tech innovations.",
+      accent: "Premium Collection",
+      link: "/shop?type=new",
+      color: "from-blue-600 to-violet-600",
+    },
+    {
+      id: 2,
+      image:
+        "https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?q=80&w=1932&auto=format&fit=crop",
+      title: "Certified Refurbished",
+      subtitle: "Premium quality, sustainable choice. Save up to 40%.",
+      accent: "Eco-Friendly Choice",
+      link: "/shop?type=used",
+      color: "from-emerald-600 to-teal-600",
+    },
+    {
+      id: 3,
+      image:
+        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=1780&auto=format&fit=crop",
+      title: "Smart Accessories",
+      subtitle: "Enhance your experience with essential add-ons.",
+      accent: "Trending Now",
+      link: "/shop?category=accessories&type=new",
+      color: "from-orange-600 to-red-600",
+    },
+  ];
 
   return (
-    <section className="relative w-full overflow-hidden bg-navy-900 group">
-      {/* Aspect ratio container: taller on mobile, wider on desktop */}
-      <div className="relative w-full aspect-[4/5] sm:aspect-[2/1] lg:aspect-[2.5/1] max-h-[600px]">
-        {banners.map((banner, index) => (
-          <div
-            key={banner.id}
-            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-              index === currentSlide
-                ? "opacity-100 z-10"
-                : "opacity-0 z-0 pointer-events-none"
-            }`}
-          >
-            {/* Background Image */}
-            <div className="absolute inset-0">
-              <Image
-                src={banner.image}
-                alt={banner.title}
-                fill
-                className="object-cover object-center"
-                priority={index === 0}
-              />
-              {/* Gradient Overlay for text readability */}
+    <div className="relative group w-full h-[600px] lg:h-[700px] overflow-hidden bg-gray-900">
+      <Swiper
+        modules={[Navigation, Pagination, Autoplay, EffectFade]}
+        effect="fade"
+        speed={1000}
+        spaceBetween={0}
+        slidesPerView={1}
+        navigation={{
+          nextEl: ".hero-next",
+          prevEl: ".hero-prev",
+        }}
+        pagination={{
+          clickable: true,
+          el: ".hero-pagination",
+          bulletClass:
+            "w-3 h-3 bg-white/30 rounded-full cursor-pointer transition-all duration-300 mx-1 hover:bg-white/80",
+          bulletActiveClass: "!bg-white !w-8",
+        }}
+        autoplay={{ delay: 6000, disableOnInteraction: false }}
+        className="h-full w-full"
+      >
+        {slides.map((slide) => (
+          <SwiperSlide key={slide.id}>
+            <div className="relative h-full w-full">
+              {/* Background Image */}
               <div
-                className={`absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/80 md:from-black/70 to-transparent`}
-              />
-            </div>
+                className="absolute inset-0 bg-cover bg-center transition-transform duration-[8000ms] scale-100 hover:scale-105"
+                style={{ backgroundImage: `url(${slide.image})` }}
+              >
+                {/* Gradient Overlay for Text Readability */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
+              </div>
 
-            {/* Content Container */}
-            <div className="absolute inset-0 flex items-end md:items-center pb-12 md:pb-0">
-              <div className="w-full max-w-[var(--container-max-width)] mx-auto px-6 md:px-12">
-                <div className="max-w-xl text-white animate-in slide-in-from-bottom-8 duration-700 fade-in delay-100 fill-mode-both">
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-3 md:mb-4 leading-tight">
-                    {banner.title}
+              {/* Content Container */}
+              <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-start">
+                <div
+                  className="max-w-2xl text-white space-y-6 opacity-0 animate-fade-in-up"
+                  style={{
+                    animationDelay: "0.3s",
+                    animationFillMode: "forwards",
+                  }}
+                >
+                  {/* Badge */}
+                  <div
+                    className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r ${slide.color} backdrop-blur-md border border-white/10 shadow-lg`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                    <span className="text-sm font-bold tracking-wide uppercase">
+                      {slide.accent}
+                    </span>
+                  </div>
+
+                  {/* Main Title */}
+                  <h1 className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight drop-shadow-xl">
+                    {slide.title}
                   </h1>
-                  <p className="text-sm sm:text-base md:text-lg text-white/90 mb-6 md:mb-8 max-w-sm md:max-w-md">
-                    {banner.subtitle}
+
+                  {/* Subtitle */}
+                  <p className="text-xl md:text-2xl text-gray-200 font-light max-w-lg leading-relaxed drop-shadow-md">
+                    {slide.subtitle}
                   </p>
-                  <Link href={banner.link} passHref>
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      className="w-full sm:w-auto shadow-lg shadow-blue-500/20"
+
+                  {/* CTA Button */}
+                  <div className="pt-6">
+                    <Link
+                      href={slide.link}
+                      className="group/btn relative inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 rounded-full font-bold text-lg overflow-hidden transition-all duration-300 hover:bg-gray-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)]"
                     >
-                      {banner.ctaText}
-                    </Button>
-                  </Link>
+                      <span className="relative z-10">Shop Now</span>
+                      <div className="relative z-10 p-1.5 bg-gray-900 rounded-full text-white transition-transform duration-300 group-hover/btn:translate-x-1">
+                        <ArrowRight size={18} />
+                      </div>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </SwiperSlide>
         ))}
-      </div>
 
-      {/* Navigation Arrows (Desktop only, visible on hover) */}
-      <button
-        onClick={prevSlide}
-        className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur-md items-center justify-center text-white z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-auto"
-        aria-label="Previous slide"
-      >
-        <ChevronLeft size={24} />
-      </button>
-      <button
-        onClick={nextSlide}
-        className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur-md items-center justify-center text-white z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-auto"
-        aria-label="Next slide"
-      >
-        <ChevronRight size={24} />
-      </button>
+        {/* Custom Navigation Buttons */}
+        <div className="absolute bottom-8 right-8 z-20 flex items-center gap-4 hidden md:flex">
+          <button className="hero-prev w-12 h-12 flex items-center justify-center rounded-full border border-white/20 bg-black/20 text-white backdrop-blur-sm hover:bg-white hover:text-black transition-all duration-300 group">
+            <ChevronRight size={24} className="rotate-180" />
+          </button>
+          <button className="hero-next w-12 h-12 flex items-center justify-center rounded-full border border-white/20 bg-black/20 text-white backdrop-blur-sm hover:bg-white hover:text-black transition-all duration-300 group">
+            <ChevronRight size={24} />
+          </button>
+        </div>
 
-      {/* Dots Indicator */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
-        {banners.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentSlide(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentSlide
-                ? "w-6 bg-blue-500"
-                : "bg-white/50 hover:bg-white/80"
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
-    </section>
+        {/* Custom Pagination */}
+        <div className="hero-pagination absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex md:left-8 md:translate-x-0"></div>
+      </Swiper>
+
+      {/* Decorative Bottom Fade */}
+      <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent dark:from-slate-900 z-10 pointer-events-none"></div>
+    </div>
   );
 };
 

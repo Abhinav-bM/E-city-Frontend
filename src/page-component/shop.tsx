@@ -5,9 +5,9 @@ import ShopHeader from "@/components/shop/ShopHeader";
 import ProductCard from "@/components/product-card";
 import React, { useEffect, useState } from "react";
 import { fetchProducts, selectProduct } from "@/store/productSlice";
+import { addItemToCartHook } from "@/store/cartSlice";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { useRouter, useSearchParams } from "next/navigation";
-import { addToCart } from "@/api/cart";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { getCategories } from "@/api/category";
 import toast from "react-hot-toast";
 import MobileFilterDrawer from "@/components/shop/MobileFilterDrawer";
@@ -15,19 +15,22 @@ import InfiniteScrollTrigger from "@/components/ui/InfiniteScrollTrigger";
 import ProductCardSkeleton from "@/components/product-card/Skeleton";
 import FilterSidebarSkeleton from "@/components/shop/FilterSidebarSkeleton";
 import { SearchX } from "lucide-react";
+import { Category } from "@/types";
 
 const PAGE_SIZE = 12;
 
-const ShopPage = () => {
+const ShopPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const products = useAppSelector(selectProduct);
+  const { isAuthenticated } = useAppSelector((state: any) => state.user);
 
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const router = useRouter();
 
   const [page, setPage] = useState(1);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const isLoading = products.status === "loading";
   const hasMore = products.data.length < (products.filter?.total || 0);
 
@@ -80,15 +83,34 @@ const ShopPage = () => {
     dispatch(fetchProducts(filterPayload));
   };
 
-  const _handleAddToCart = async (id, variantId, quantity = 1) => {
+  const _handleAddToCart = async (
+    id?: string,
+    variantId?: string,
+    quantity: number = 1,
+  ) => {
+    if (!isAuthenticated) {
+      const currentParams = searchParams.toString();
+      const referer = currentParams ? `${pathname}?${currentParams}` : pathname;
+      router.push(`/login?referer=${encodeURIComponent(referer)}`);
+      return false;
+    }
+
+    if (!id || !variantId) return false;
+
     try {
-      const response = await addToCart(id, variantId, quantity);
-      if (response.data.data) {
-        toast.success("Product added to Cart");
-      }
+      await dispatch(
+        addItemToCartHook({
+          baseProductId: id,
+          variantId,
+          quantity,
+        }),
+      ).unwrap();
+
+      toast.success("Product added to Cart");
+      return true;
     } catch (error) {
-      toast.error("Error while adding product to cart");
       console.error("Error while adding product to cart : ", error);
+      return false;
     }
   };
 
@@ -137,7 +159,7 @@ const ShopPage = () => {
                     <ProductCardSkeleton />
                   </div>
                 ))
-              : products.data?.map((prod, i) => (
+              : products.data?.map((prod: any, i: number) => (
                   <div key={`${prod.variantId}-${i}`} className="w-full">
                     <ProductCard
                       product={prod}

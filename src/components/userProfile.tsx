@@ -1,6 +1,6 @@
 import React from "react";
 
-const AccountSettings = () => {
+const AccountSettings: React.FC = () => {
   return (
     <div className="flex w-full my-10  custom-padding">
       {/* Left sidebar */}

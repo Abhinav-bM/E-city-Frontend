@@ -14,8 +14,9 @@ import {
   Search,
   Menu,
   X,
-  ChevronDown,
+  Package,
 } from "lucide-react";
+import { Category, BaseProduct } from "@/types";
 
 // For the instant search API call
 import { getProducts } from "@/api/product";
@@ -34,19 +35,21 @@ const Navbar = () => {
   // Search states
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
   // Refs for click-outside detection
-  const desktopSearchRef = useRef(null);
-  const mobileSearchRef = useRef(null);
+  const desktopSearchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
 
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
-  const { isAuthenticated } = useAppSelector((state) => state.user);
-  const { items: wishlistItems } = useAppSelector((state) => state.wishlist);
-  const { totalItems: cartCount } = useAppSelector((state) => state.cart);
+  const { isAuthenticated } = useAppSelector((state: any) => state.user);
+  const { items: wishlistItems } = useAppSelector(
+    (state: any) => state.wishlist,
+  );
+  const { totalItems: cartCount } = useAppSelector((state: any) => state.cart);
 
   // Global Initializers — fetch wishlist/cart once when authenticated
   useEffect(() => {
@@ -125,12 +128,12 @@ const Navbar = () => {
 
   // 3. Handle click outside to close dropdown
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (
         desktopSearchRef.current &&
-        !desktopSearchRef.current.contains(event.target) &&
+        !desktopSearchRef.current.contains(event.target as Node) &&
         mobileSearchRef.current &&
-        !mobileSearchRef.current.contains(event.target)
+        !mobileSearchRef.current.contains(event.target as Node)
       ) {
         setShowDropdown(false);
       }
@@ -139,7 +142,7 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSearchSubmit = (e) => {
+  const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       setShowDropdown(false);
@@ -148,7 +151,7 @@ const Navbar = () => {
     }
   };
 
-  const handleResultClick = (slug) => {
+  const handleResultClick = (slug: string) => {
     setShowDropdown(false);
     setSearchQuery("");
     setMobileMenuOpen(false);

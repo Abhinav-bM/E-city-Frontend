@@ -2,8 +2,14 @@
 import React from "react";
 import { ShieldCheck, Truck, Clock, Headphones } from "lucide-react";
 
-const TrustSignals = () => {
-  const features = [
+interface Feature {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}
+
+const TrustSignals: React.FC = () => {
+  const features: Feature[] = [
     {
       icon: <ShieldCheck size={40} className="text-primary" />,
       title: "1-Year Warranty",

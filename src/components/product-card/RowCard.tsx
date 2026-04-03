@@ -8,13 +8,14 @@ import WishlistButton from "../wishlistButton";
 
 interface ProductRowCardProps {
   product: any;
-  onAddToCart: (id?: string, variantId?: string) => void;
+  onAddToCart: (id?: string, variantId?: string) => Promise<boolean>;
 }
 
 const ProductRowCard = React.memo(
   ({ product, onAddToCart }: ProductRowCardProps) => {
     const [imageError, setImageError] = useState(false);
     const [imageLoading, setImageLoading] = useState(true);
+    const [addingToCart, setAddingToCart] = useState(false);
 
     const imageUrl = product?.images?.[0]?.url || product?.images?.[0];
     const hasImage = imageUrl && !imageError;
@@ -48,6 +49,15 @@ const ProductRowCard = React.memo(
           group.items.map((item: any) => `${item.key}: ${item.value}`),
         )
         .slice(0, 5) || [];
+
+    const handleAddToCartInternal = async (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (isOutOfStock || addingToCart) return;
+
+      setAddingToCart(true);
+      await onAddToCart(product.baseProductId, product.variantId);
+      setAddingToCart(false);
+    };
 
     return (
       <div
@@ -168,19 +178,22 @@ const ProductRowCard = React.memo(
           </div>
 
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              onAddToCart(product.baseProductId, product.variantId);
-            }}
-            disabled={isOutOfStock}
+            onClick={handleAddToCartInternal}
+            disabled={isOutOfStock || addingToCart}
             className={`w-full md:w-auto px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 ${
               isOutOfStock
                 ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
                 : "bg-slate-900 text-white hover:bg-blue-600 shadow-slate-200 hover:shadow-blue-200"
             }`}
           >
-            <Plus size={20} strokeWidth={2.5} />
-            <span>Add to Cart</span>
+            {addingToCart ? (
+              <div className="w-5 h-5 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+            ) : (
+              <>
+                <Plus size={20} strokeWidth={2.5} />
+                <span>Add to Cart</span>
+              </>
+            )}
           </button>
         </div>
       </div>

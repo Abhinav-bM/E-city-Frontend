@@ -9,7 +9,7 @@ import type { ProductCardProduct } from "./types";
 
 interface ProductCardProps {
   product: ProductCardProduct;
-  onAddToCart: (id?: string, variantId?: string) => void;
+  onAddToCart: (id?: string, variantId?: string) => Promise<boolean>;
 }
 
 const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProps) => {
@@ -87,19 +87,22 @@ const ProductCard = React.memo(({ product, onAddToCart }: ProductCardProps) => {
 
   /* ── Add to cart with feedback ── */
   const handleAddToCart = useCallback(
-    (e: React.MouseEvent) => {
+    async (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       if (isOutOfStock || addingToCart) return;
 
       setAddingToCart(true);
-      onAddToCart(product.baseProductId, product.variantId);
+      const success = await onAddToCart(
+        product.baseProductId,
+        product.variantId,
+      );
 
-      setTimeout(() => {
-        setAddingToCart(false);
+      setAddingToCart(false);
+      if (success) {
         setJustAdded(true);
-        setTimeout(() => setJustAdded(false), 1400);
-      }, 500);
+        setTimeout(() => setJustAdded(false), 2000);
+      }
     },
     [
       isOutOfStock,

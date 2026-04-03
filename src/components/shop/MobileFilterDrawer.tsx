@@ -3,11 +3,21 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import FilterSidebar from "./FilterSidebar";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { Category } from "@/types";
 
-const MobileFilterDrawer = ({ isOpen, onClose, categories }) => {
+interface MobileFilterDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  categories: Category[];
+}
+
+const MobileFilterDrawer: React.FC<MobileFilterDrawerProps> = ({
+  isOpen,
+  onClose,
+  categories,
+}) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 

@@ -1,78 +1,135 @@
-import React from "react";
-import ProductCarousel from "@/components/product/ProductCarousel";
-
-// Temporary mock data until Redux is wired
-const mockNewArrivals = [
-  {
-    id: "na1",
-    title: "iPhone 15 Pro Max 256GB Natural Titanium",
-    image:
-      "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=600&auto=format&fit=crop",
-    price: 159900,
-    originalPrice: 159900,
-    condition: "new" as const,
-    isNewArrival: true,
-    rating: 4.8,
-    reviews: 124,
-  },
-  {
-    id: "na2",
-    title: "MacBook Air M3 2024 (8GB RAM, 256GB SSD)",
-    image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=600&auto=format&fit=crop",
-    price: 114900,
-    originalPrice: 134900, // Show a discount
-    condition: "new" as const,
-    isNewArrival: true,
-    rating: 4.9,
-    reviews: 86,
-  },
-  {
-    id: "na3",
-    title: "AirPods Pro (2nd Generation) with USB-C",
-    image:
-      "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?q=80&w=600&auto=format&fit=crop",
-    price: 24900,
-    condition: "new" as const,
-    isNewArrival: true,
-    rating: 4.7,
-    reviews: 312,
-  },
-  {
-    id: "na4",
-    title: "Samsung Galaxy S24 Ultra 5G AI Smartphone",
-    image:
-      "https://images.unsplash.com/photo-1706691456942-0c9f1d07c42a?q=80&w=600&auto=format&fit=crop",
-    price: 129999,
-    originalPrice: 134999,
-    condition: "new" as const,
-    isNewArrival: true,
-    rating: 4.6,
-    reviews: 58,
-  },
-  {
-    id: "na5",
-    title: "OnePlus 12 (Flowy Emerald, 16GB RAM, 512GB)",
-    image:
-      "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=600&auto=format&fit=crop",
-    price: 69999,
-    condition: "new" as const,
-    isNewArrival: true,
-    rating: 4.5,
-    reviews: 19,
-  },
-];
+"use client";
+import React, { useEffect, useState } from "react";
+import { getProducts } from "@/api/product";
+import { addToCart } from "@/api/cart";
+import ProductCard from "@/components/product-card";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import toast from "react-hot-toast";
 
 const NewArrivals: React.FC = () => {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNewArrivals = async () => {
+      try {
+        const res = await getProducts({
+          isNewArrival: true,
+          limit: 12,
+          inStockOnly: true,
+        });
+        setProducts(res.data.data.products || []);
+      } catch (error) {
+        console.error("Failed to fetch new arrivals", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchNewArrivals();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-slate-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <div className="h-8 w-48 bg-slate-200 animate-pulse rounded mb-2"></div>
+              <div className="h-4 w-64 bg-slate-200 animate-pulse rounded"></div>
+            </div>
+            <div className="flex gap-2">
+              <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse"></div>
+              <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse"></div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl p-4 border border-slate-100 h-[400px] flex flex-col"
+              >
+                <div className="w-full aspect-square bg-slate-200 animate-pulse rounded-xl mb-4"></div>
+                <div className="h-4 w-20 bg-slate-200 animate-pulse rounded mb-2"></div>
+                <div className="h-6 w-full bg-slate-200 animate-pulse rounded mb-2"></div>
+                <div className="h-6 w-3/4 bg-slate-200 animate-pulse rounded mb-4"></div>
+                <div className="mt-auto flex justify-between items-end">
+                  <div className="h-6 w-24 bg-slate-200 animate-pulse rounded"></div>
+                  <div className="w-10 h-10 rounded-xl bg-slate-200 animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (products.length === 0) return null;
+
+  const _handleAddToCart = async (id?: string, variantId?: string): Promise<boolean> => {
+    if (!id || !variantId) return false;
+    try {
+      const response = await addToCart(id, variantId, 1);
+      if (response.data.data) {
+        toast.success("Product added to Cart");
+        return true;
+      }
+      return false;
+    } catch (error) {
+      toast.error("Error adding product to cart");
+      console.error("Error adding product to cart:", error);
+      return false;
+    }
+  };
+
   return (
-    <ProductCarousel
-      title="Fresh Drops"
-      subtitle="The latest and greatest tech, just landed."
-      products={mockNewArrivals as any}
-      className="bg-surface-card mb-2"
-      actionLabel="View All New"
-      actionHref="/shop?category=smartphones&sort=newest"
-    />
+    <div className="bg-slate-50 py-16">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">
+              New Arrivals
+            </h2>
+            <p className="text-slate-500 mt-2">
+              Check out the latest gadgets in stock
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button className="new-prev w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-white hover:shadow-md transition-all text-slate-600">
+              <ChevronLeft size={20} />
+            </button>
+            <button className="new-next w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center hover:bg-white hover:shadow-md transition-all text-slate-600">
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+
+        <Swiper
+          modules={[Navigation]}
+          spaceBetween={24}
+          slidesPerView={1}
+          navigation={{
+            nextEl: ".new-next",
+            prevEl: ".new-prev",
+          }}
+          breakpoints={{
+            640: { slidesPerView: 2 },
+            768: { slidesPerView: 3 },
+            1024: { slidesPerView: 4 },
+          }}
+          className="!pb-12 !px-1" // minimal padding for shadow
+        >
+          {products.map((product) => (
+            <SwiperSlide key={product._id} className="h-auto">
+              <ProductCard product={product} onAddToCart={_handleAddToCart} />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+    </div>
   );
 };
 

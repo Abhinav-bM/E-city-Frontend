@@ -4,7 +4,12 @@ import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Filter, X, ChevronRight } from "lucide-react";
 
-const SORT_OPTIONS = [
+interface SortOption {
+  value: string;
+  label: string;
+}
+
+const SORT_OPTIONS: SortOption[] = [
   { value: "newest", label: "Newest" },
   { value: "price_asc", label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
@@ -15,7 +20,7 @@ const SORT_OPTIONS = [
 const HIDDEN_CHIP_KEYS = new Set(["page", "sort", "limit", "isActive"]);
 
 /* Friendly labels for chip display */
-const CHIP_LABELS = {
+const CHIP_LABELS: Record<string, string> = {
   condition: "Condition",
   category: "Category",
   brand: "Brand",
@@ -23,7 +28,14 @@ const CHIP_LABELS = {
   maxPrice: "Max Price",
 };
 
-const ShopHeader = ({
+interface ShopHeaderProps {
+  totalProducts: number;
+  loadedCount: number;
+  onFilterClick: () => void;
+  categoryName: string | null;
+}
+
+const ShopHeader: React.FC<ShopHeaderProps> = ({
   totalProducts,
   loadedCount,
   onFilterClick,
@@ -37,7 +49,7 @@ const ShopHeader = ({
   const end = Math.min(loadedCount || 0, totalProducts);
 
   /* ── Sort handler ── */
-  const handleSortChange = (sortValue) => {
+  const handleSortChange = (sortValue: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("sort", sortValue);
     params.set("page", "1");
@@ -45,7 +57,7 @@ const ShopHeader = ({
   };
 
   /* ── Active filter chips ── */
-  const activeFilters = [];
+  const activeFilters: { key: string; value: string }[] = [];
   for (const [key, value] of searchParams.entries()) {
     if (HIDDEN_CHIP_KEYS.has(key)) continue;
     // Show category name instead of raw ID
@@ -54,7 +66,7 @@ const ShopHeader = ({
     activeFilters.push({ key, value: displayValue });
   }
 
-  const removeFilter = (key) => {
+  const removeFilter = (key: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete(key);
     params.set("page", "1");

@@ -5,11 +5,13 @@ import clsx from "clsx";
 import toast from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { toggleWishlistItem } from "@/store/wishlistSlice";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 const WishlistButton = ({ variantId }: { variantId: string }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const { items } = useAppSelector((state) => state.wishlist);
   const { isAuthenticated } = useAppSelector((state) => state.user);
@@ -25,8 +27,9 @@ const WishlistButton = ({ variantId }: { variantId: string }) => {
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      toast.error("Please login to manage your wishlist.");
-      router.push("/login");
+      const currentParams = searchParams.toString();
+      const referer = currentParams ? `${pathname}?${currentParams}` : pathname;
+      router.push(`/login?referer=${encodeURIComponent(referer)}`);
       return;
     }
 

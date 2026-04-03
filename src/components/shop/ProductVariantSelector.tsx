@@ -2,7 +2,13 @@
 
 import React from "react";
 
-const ProductVariantSelector = ({
+interface ProductVariantSelectorProps {
+  variants: any[];
+  selectedVariant: any;
+  onSelectVariant: (variant: any) => void;
+}
+
+const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({
   variants = [],
   selectedVariant,
   onSelectVariant,
@@ -16,8 +22,7 @@ const ProductVariantSelector = ({
   // --- LOGIC FOR NEW PRODUCTS (Attribute Selection) ---
   if (!isUnique) {
     // 1. Identify all available attributes (e.g., Color, Storage)
-    // We look at all variants to gather all possible keys and values
-    const attributeKeys = new Set();
+    const attributeKeys = new Set<string>();
     variants.forEach((v) => {
       if (v.attributes) {
         Object.keys(v.attributes).forEach((k) => attributeKeys.add(k));
@@ -32,8 +37,10 @@ const ProductVariantSelector = ({
         {attributes.map((attrKey) => {
           // Get all unique values for this attribute
           const values = Array.from(
-            new Set(
-              variants.map((v) => v.attributes?.[attrKey]).filter(Boolean),
+            new Set<string>(
+              variants
+                .map((v) => v.attributes?.[attrKey])
+                .filter((v): v is string => Boolean(v)),
             ),
           );
 
@@ -48,15 +55,6 @@ const ProductVariantSelector = ({
               <div className="flex flex-wrap gap-3">
                 {values.map((value) => {
                   // Check availability of this specific value
-                  // We want to know if selecting this value is possible given current selections of OTHER attributes?
-                  // For simplicity, we just check if ANY variant exists with this value.
-                  // A more complex solver would check valid combinations.
-                  // For now: Is there a variant with this {attrKey: value} that is in stock?
-
-                  // Simple check: Just find the specific variant that matches this value
-                  // AND matches the *other* currently selected attributes.
-                  // If we change Color, we try to keep Storage the same.
-
                   const otherAttributes = { ...selectedVariant.attributes };
                   delete otherAttributes[attrKey]; // Remove current attribute being changed
 
@@ -75,7 +73,7 @@ const ProductVariantSelector = ({
 
                   const isSelected =
                     selectedVariant?.attributes?.[attrKey] === value;
-                  const isAvailable = match?.stock > 0;
+                  const isAvailable = (match?.stock || 0) > 0;
 
                   return (
                     <button
@@ -86,7 +84,7 @@ const ProductVariantSelector = ({
                           ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600"
                           : "border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                       } ${!isAvailable ? "opacity-50 cursor-not-allowed decoration-slate-400" : ""}`}
-                      disabled={!match} // Or !isAvailable if we want to strict block OOS
+                      disabled={!match}
                     >
                       {value}
                     </button>
@@ -101,10 +99,6 @@ const ProductVariantSelector = ({
   }
 
   // --- LOGIC FOR USED PRODUCTS (Unique Unit Selection) ---
-  // If it's unique, we might have multiple units of the same stats?
-  // Or just different variants.
-  // For used items, often users want to see specific condition descriptions.
-
   return (
     <div className="space-y-4">
       <h4 className="text-sm font-medium text-slate-900">Select Unit:</h4>

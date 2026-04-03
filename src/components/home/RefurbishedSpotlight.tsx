@@ -1,65 +1,145 @@
-import React from "react";
-import ProductCarousel from "@/components/product/ProductCarousel";
-
-// Temporary mock data
-const mockRefurbished = [
-  {
-    id: "rf1",
-    title: "Apple iPhone 13 (Mobile) - Used Box",
-    image:
-      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=600&auto=format&fit=crop",
-    price: 38999,
-    originalPrice: 59900,
-    condition: "grade-a" as const,
-    rating: 4.6,
-    reviews: 42,
-  },
-  {
-    id: "rf2",
-    title: "Samsung Galaxy S22 5G (Green, 8GB/128GB)",
-    image:
-      "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?q=80&w=600&auto=format&fit=crop", // placeholder
-    price: 24500,
-    originalPrice: 72999,
-    condition: "grade-b" as const,
-    rating: 4.4,
-    reviews: 18,
-  },
-  {
-    id: "rf3",
-    title: "MacBook Pro 13-inch M1 (2020) Space Gray",
-    image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=600&auto=format&fit=crop", // placeholder
-    price: 65900,
-    originalPrice: 122900,
-    condition: "grade-a" as const,
-    rating: 4.9,
-    reviews: 104,
-  },
-  {
-    id: "rf4",
-    title: "Google Pixel 7 Pro (Obsidian, 128GB)",
-    image:
-      "https://images.unsplash.com/photo-1598327105666-5b89351cb315?q=80&w=600&auto=format&fit=crop", // placeholder
-    price: 34999,
-    originalPrice: 84999,
-    condition: "grade-c" as const,
-    rating: 4.2,
-    reviews: 7,
-  },
-];
+"use client";
+import React, { useEffect, useState } from "react";
+import { getProducts } from "@/api/product";
+import { addToCart } from "@/api/cart";
+import ProductCard from "@/components/product-card";
+import Link from "next/link";
+import toast from "react-hot-toast";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
 
 const RefurbishedSpotlight: React.FC = () => {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRefurbished = async () => {
+      try {
+        const res = await getProducts({
+          inventoryType: "Unique",
+          limit: 8,
+          inStockOnly: true,
+        });
+        setProducts(res.data.data.products || []);
+      } catch (error) {
+        console.error("Failed to fetch refurbished products", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRefurbished();
+  }, []);
+
+  const _handleAddToCart = async (id?: string, variantId?: string): Promise<boolean> => {
+    if (!id || !variantId) return false;
+    try {
+      const response = await addToCart(id, variantId, 1);
+      if (response.data.data) {
+        toast.success("Product added to Cart");
+        return true;
+      }
+      return false;
+    } catch (error) {
+      toast.error("Error adding product to cart");
+      console.error("Error adding product to cart:", error);
+      return false;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="py-16 bg-blue-50/50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="flex flex-col md:flex-row items-end justify-between mb-10 gap-4">
+            <div>
+              <div className="h-4 w-32 bg-blue-100 animate-pulse rounded mb-2"></div>
+              <div className="h-8 w-64 bg-slate-200 animate-pulse rounded mb-2"></div>
+              <div className="h-4 w-96 bg-slate-200 animate-pulse rounded"></div>
+            </div>
+            <div className="h-6 w-40 bg-blue-100 animate-pulse rounded"></div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl p-4 border border-slate-100 h-[400px] flex flex-col"
+              >
+                <div className="w-full aspect-square bg-slate-200 animate-pulse rounded-xl mb-4"></div>
+                <div className="h-4 w-20 bg-slate-200 animate-pulse rounded mb-2"></div>
+                <div className="h-6 w-full bg-slate-200 animate-pulse rounded mb-2"></div>
+                <div className="h-6 w-3/4 bg-slate-200 animate-pulse rounded mb-4"></div>
+                <div className="mt-auto flex justify-between items-end">
+                  <div className="h-6 w-24 bg-slate-200 animate-pulse rounded"></div>
+                  <div className="w-10 h-10 rounded-xl bg-slate-200 animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (products.length === 0) return null;
+
   return (
-    <div className="bg-surface-card mb-2 py-4 relative isolation-isolate overflow-hidden">
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -z-10" />
-      <ProductCarousel
-        title="Certified Refurbished Deals"
-        subtitle="Up to 60% off. 32-point inspection. 1-Year warranty."
-        products={mockRefurbished as any}
-        actionLabel="Shop All Refurbished"
-        actionHref="/shop?condition=refurbished"
-      />
+    <div className="py-16 bg-blue-50/50">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <div className="flex flex-col md:flex-row items-end justify-between mb-10 gap-4">
+          <div>
+            <span className="text-blue-600 font-bold tracking-widest text-xs uppercase mb-2 block">
+              Sustainability
+            </span>
+            <h2 className="text-3xl font-bold text-slate-900">
+              Refurbished Spotlight
+            </h2>
+            <p className="text-slate-500 mt-2 max-w-xl">
+              Good as new. Better for the planet. Verified by our experts with
+              1-year warranty.
+            </p>
+          </div>
+          <Link
+            href="/shop?condition=Refurbished"
+            className="group hidden md:flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+          >
+            Shop all Refurbished
+            <span className="group-hover:translate-x-1 transition-transform">
+              →
+            </span>
+          </Link>
+        </div>
+
+        <Swiper
+          modules={[Navigation]}
+          spaceBetween={24}
+          slidesPerView={1}
+          breakpoints={{
+            0: { slidesPerView: 2 },
+            768: { slidesPerView: 3 },
+            1024: { slidesPerView: 4 },
+          }}
+          className="!pb-12 !px-1"
+        >
+          {products.map((product) => (
+            <SwiperSlide key={product._id} className="h-auto">
+              <ProductCard product={product} onAddToCart={_handleAddToCart} />
+            </SwiperSlide>
+          ))}
+        </Swiper>
+
+        <Link
+          href="/shop?condition=Refurbished"
+          className="group flex items-center justify-center md:hidden gap-1 text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+        >
+          <span className="group-hover:scale-105 transition-transform duration-300">
+            View more
+          </span>
+          <span className="group-hover:translate-x-1 transition-transform -rotate-45">
+            →
+          </span>
+        </Link>
+      </div>
     </div>
   );
 };

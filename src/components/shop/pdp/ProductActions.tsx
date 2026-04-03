@@ -5,7 +5,7 @@ import { Variant, BaseProduct } from "./types";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { addItemToCartHook, setDirectItem } from "@/store/cartSlice";
 import { toggleWishlistItem } from "@/store/wishlistSlice";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 
 interface ProductActionsProps {
@@ -23,19 +23,19 @@ const ProductActions: React.FC<ProductActionsProps> = ({
 
   const dispatch = useAppDispatch();
   const router = useRouter();
-  // const pathname = usePathname();
-  // const { isAuthenticated } = useAppSelector((state) => state.user);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { isAuthenticated } = useAppSelector((state) => state.user);
 
   const handleAddToCart = async () => {
     if (isOutOfStock) return;
 
-    /*
     if (!isAuthenticated) {
-      toast.error("Please login to add items to cart");
-      router.push(`/login?redirect=${pathname}`);
+      const currentParams = searchParams.toString();
+      const referer = currentParams ? `${pathname}?${currentParams}` : pathname;
+      router.push(`/login?referer=${encodeURIComponent(referer)}`);
       return;
     }
-    */
 
     setIsLoading(true);
     try {
@@ -205,6 +205,13 @@ const ProductActions: React.FC<ProductActionsProps> = ({
   const handleBuyNow = () => {
     if (isOutOfStock) return;
 
+    if (!isAuthenticated) {
+      const currentParams = searchParams.toString();
+      const referer = currentParams ? `${pathname}?${currentParams}` : pathname;
+      router.push(`/login?referer=${encodeURIComponent(referer)}`);
+      return;
+    }
+
     // Store full product details so checkout page can render it
     dispatch(
       setDirectItem({
@@ -227,6 +234,12 @@ const ProductActions: React.FC<ProductActionsProps> = ({
   );
 
   const handleToggleWishlist = async () => {
+    if (!isAuthenticated) {
+      const currentParams = searchParams.toString();
+      const referer = currentParams ? `${pathname}?${currentParams}` : pathname;
+      router.push(`/login?referer=${encodeURIComponent(referer)}`);
+      return;
+    }
     try {
       const resultAction = await dispatch(
         toggleWishlistItem({

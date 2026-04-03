@@ -1,40 +1,25 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
+import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import Link from "next/link";
 import { getCategories } from "@/api/category";
 import { LayoutGrid } from "lucide-react";
+import { Category } from "@/types";
 
-const CategoryCarousel = () => {
-  const [categories, setCategories] = useState([]);
+const CategoryCarousel: React.FC = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await getCategories();
-        // Filter for featured categories if needed, or just show all/top level
-        // For now, let's assume we want to show Featured ones if available, or just all top-level
-        // The backend `getCategories` returns a tree.
-        // If we want "Featured", we might need to filter manually or update backend to return flat list if requested.
-        // The backend `buildCategoryTree` returns a tree. The top level items are the roots.
-        // Let's iterate through the tree or finding featured ones.
-        // Actually, the backend `getCategories` sends the tree.
-        // If `isFeatured` is on the category object, we can filter.
-        // But since it's a tree, we need to traverse or just show top level.
-        // Let's assume we show Top Level categories that are either Featured or just Top Level.
-
-        // Let's flatten the tree to find all Featured categories if that's the requirement,
-        // OR just show top-level categories as "Shop by Category".
-
-        // Let's try to show Top Level Categories first.
-        const topLevel = res.data.data || [];
-        // Optional: Filter by isFeatured if we want only specific ones
-        const featured = topLevel.filter((c) => c.isFeatured);
+        const topLevel: Category[] = res.data.data || [];
+        const featured = topLevel.filter((c: any) => c.isFeatured);
         setCategories(featured.length > 0 ? featured : topLevel);
       } catch (error) {
         console.error("Failed to fetch categories", error);

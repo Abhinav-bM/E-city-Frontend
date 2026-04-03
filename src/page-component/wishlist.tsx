@@ -1,6 +1,6 @@
 import React from "react";
 
-const WishlistPage = () => {
+const WishlistPage: React.FC = () => {
   return (
     <div>
       <h1>Welcome to wishlist page</h1>

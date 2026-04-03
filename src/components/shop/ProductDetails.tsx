@@ -8,9 +8,18 @@ import ProductVariantSelector from "./ProductVariantSelector";
 import { addToCart } from "@/api/cart";
 import toast from "react-hot-toast";
 
-const ProductDetails = ({ productData }) => {
+interface ProductDetailsProps {
+  productData: {
+    currentVariant: any;
+    baseProduct: any;
+    availableVariants: any[];
+    variantMetadata: any;
+  };
+}
+
+const ProductDetails: React.FC<ProductDetailsProps> = ({ productData }) => {
   const router = useRouter();
-  const { currentVariant, baseProduct, availableVariants, variantMetadata } =
+  const { currentVariant, baseProduct, availableVariants } =
     productData;
   const [quantity, setQuantity] = useState(1);
 
@@ -22,13 +31,13 @@ const ProductDetails = ({ productData }) => {
   // New vs Used Logic
   const isUsed = currentVariant?.condition !== "New";
 
-  const handleVariantChange = (variant) => {
+  const handleVariantChange = (variant: any) => {
     if (variant?.slug && variant.slug !== currentVariant.slug) {
       router.push(`/shop/${variant.slug}`);
     }
   };
 
-  const handleQuantityChange = (val) => {
+  const handleQuantityChange = (val: number) => {
     if (val < 1) return;
     if (val > stock) {
       toast.error(`Only ${stock} items available`);
@@ -208,11 +217,11 @@ const ProductDetails = ({ productData }) => {
           // 1. Get Variant Attributes (e.g., RAM, Storage)
           const attributes =
             baseProduct.variantAttributes
-              ?.map((attr) => ({
+              ?.map((attr: any) => ({
                 key: attr.name,
                 value: currentVariant.attributes?.[attr.name],
               }))
-              .filter((a) => a.value) || [];
+              .filter((a: any) => a.value) || [];
 
           // 2. Get Key Specs from Specifications
           // Whitelist of common high-level specs to look for
@@ -233,10 +242,10 @@ const ProductDetails = ({ productData }) => {
             "network",
           ];
 
-          let specHighlights = [];
+          let specHighlights: any[] = [];
           if (baseProduct.specifications) {
-            baseProduct.specifications.forEach((group) => {
-              group.items.forEach((item) => {
+            baseProduct.specifications.forEach((group: any) => {
+              group.items.forEach((item: any) => {
                 if (
                   keySpecKeys.some((k) => item.key.toLowerCase().includes(k))
                 ) {
@@ -306,13 +315,13 @@ const ProductDetails = ({ productData }) => {
                 Specifications
               </h3>
               <div className="border border-slate-200 rounded-xl overflow-hidden">
-                {baseProduct.specifications.map((group, groupIndex) => (
+                {baseProduct.specifications.map((group: any, groupIndex: number) => (
                   <div key={groupIndex}>
                     <div className="bg-slate-50 px-4 py-2 font-semibold text-slate-900 border-b border-slate-200">
                       {group.group}
                     </div>
                     <div className="divide-y divide-slate-100">
-                      {group.items.map((item, itemIndex) => (
+                      {group.items.map((item: any, itemIndex: number) => (
                         <div
                           key={itemIndex}
                           className="grid grid-cols-3 px-4 py-3"

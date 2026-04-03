@@ -1,14 +1,31 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 
-const Slider = ({ min = 0, max = 100, value, onChange }) => {
+interface SliderProps {
+  min?: number;
+  max?: number;
+  value: number[];
+  onChange: (value: number[]) => void;
+  className?: string;
+}
+
+const Slider: React.FC<SliderProps> = ({
+  min = 0,
+  max = 100,
+  value,
+  onChange,
+  className = "",
+}) => {
   const [minVal, setMinVal] = useState(value[0]);
   const [maxVal, setMaxVal] = useState(value[1]);
   const minValRef = useRef(value[0]);
   const maxValRef = useRef(value[1]);
-  const range = useRef(null);
+  const range = useRef<HTMLDivElement>(null);
 
   // Convert to percentage
-  const getPercent = (value) => Math.round(((value - min) / (max - min)) * 100);
+  const getPercent = useCallback(
+    (value: number) => Math.round(((value - min) / (max - min)) * 100),
+    [min, max],
+  );
 
   // Sync state with props
   useEffect(() => {
@@ -39,20 +56,20 @@ const Slider = ({ min = 0, max = 100, value, onChange }) => {
   }, [maxVal, getPercent]);
 
   return (
-    <div className="relative w-full h-6 flex items-center group">
+    <div className={`relative w-full h-6 flex items-center group ${className}`}>
       <input
         type="range"
         min={min}
         max={max}
         value={minVal}
         onChange={(event) => {
-          const value = Math.min(Number(event.target.value), maxVal - 1);
-          setMinVal(value);
-          minValRef.current = value;
-          onChange([value, maxVal]);
+          const val = Math.min(Number(event.target.value), maxVal - 1);
+          setMinVal(val);
+          minValRef.current = val;
+          onChange([val, maxVal]);
         }}
         className="thumb thumb--left pointer-events-none absolute h-0 w-full outline-none z-[3]"
-        style={{ zIndex: minVal > max - 100 && "5" }}
+        style={{ zIndex: minVal > max - 100 ? "5" : undefined }}
       />
       <input
         type="range"
@@ -60,10 +77,10 @@ const Slider = ({ min = 0, max = 100, value, onChange }) => {
         max={max}
         value={maxVal}
         onChange={(event) => {
-          const value = Math.max(Number(event.target.value), minVal + 1);
-          setMaxVal(value);
-          maxValRef.current = value;
-          onChange([minVal, value]);
+          const val = Math.max(Number(event.target.value), minVal + 1);
+          setMaxVal(val);
+          maxValRef.current = val;
+          onChange([minVal, val]);
         }}
         className="thumb thumb--right pointer-events-none absolute h-0 w-full outline-none z-[4]"
       />
@@ -76,7 +93,7 @@ const Slider = ({ min = 0, max = 100, value, onChange }) => {
         ></div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         /* Make the input itself invisible but keep it in the flow to handle clicks */
         input[type="range"] {
           -webkit-appearance: none;

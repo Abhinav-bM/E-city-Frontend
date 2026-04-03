@@ -2,42 +2,49 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronUp, Check, X } from "lucide-react";
-import { getCategories } from "@/api/category";
+import { ChevronDown } from "lucide-react";
 import Slider from "@/components/ui/Slider";
+import { Category } from "@/types";
 
 // Redux
 import { useAppSelector } from "@/store";
 import { selectProduct } from "@/store/productSlice";
 
-const FilterSidebar = ({
+interface FilterSidebarProps {
+  className?: string;
+  hideHeader?: boolean;
+  categories?: Category[];
+}
+
+const FilterSidebar: React.FC<FilterSidebarProps> = ({
   className = "",
   hideHeader = false,
   categories = [],
 }) => {
-
   const router = useRouter();
   const searchParams = useSearchParams();
   const { facets } = useAppSelector(selectProduct);
 
-
-
   // State for filter values
-  const [priceRange, setPriceRange] = useState([0, 5000]);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedConditions, setSelectedConditions] = useState([]);
+  const [priceRange, setPriceRange] = useState<number[]>([0, 5000]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   // Dynamic Attributes State: { Color: ["Red", "Blue"], RAM: ["8GB"] }
-  const [selectedAttributes, setSelectedAttributes] = useState({});
+  const [selectedAttributes, setSelectedAttributes] = useState<
+    Record<string, string[]>
+  >({});
 
   // Collapsible states
-  const [expandedSections, setExpandedSections] = useState({
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, boolean>
+  >({
     category: true,
     price: true,
     condition: true,
     brand: true,
   });
 
-  const toggleSection = (section) => {
+  const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
@@ -71,7 +78,7 @@ const FilterSidebar = ({
     setSelectedConditions(conditionParam ? conditionParam.split(",") : []);
 
     // Dynamic Attributes
-    const newSelectedAttributes = {};
+    const newSelectedAttributes: Record<string, string[]> = {};
     if (attributes) {
       Object.keys(attributes).forEach((key) => {
         const param = searchParams.get(key);
@@ -81,14 +88,14 @@ const FilterSidebar = ({
       });
     }
     setSelectedAttributes(newSelectedAttributes);
-  }, [searchParams, facets, minPrice, maxPrice]);
+  }, [searchParams, facets, minPrice, maxPrice, attributes]);
 
-
-  const updateFilters = (newParams) => {
+  const updateFilters = (newParams: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
     Object.keys(newParams).forEach((key) => {
-      if (newParams[key]) {
-        params.set(key, newParams[key]);
+      const val = newParams[key];
+      if (val) {
+        params.set(key, val);
       } else {
         params.delete(key);
       }
@@ -97,35 +104,39 @@ const FilterSidebar = ({
     router.push(`/shop?${params.toString()}`);
   };
 
-  const handlePriceChange = (value) => setPriceRange(value);
+  const handlePriceChange = (value: number[]) => setPriceRange(value);
   const applyPriceFilter = () => {
     updateFilters({
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
+      minPrice: priceRange[0].toString(),
+      maxPrice: priceRange[1].toString(),
     });
   };
 
-  const toggleBrand = (brand) => {
+  const toggleBrand = (brand: string) => {
     const newBrands = selectedBrands.includes(brand)
       ? selectedBrands.filter((b) => b !== brand)
       : [...selectedBrands, brand];
-    updateFilters({ brand: newBrands.join(",") });
+    updateFilters({ brand: newBrands.length > 0 ? newBrands.join(",") : null });
   };
 
-  const toggleCondition = (condition) => {
+  const toggleCondition = (condition: string) => {
     const newConditions = selectedConditions.includes(condition)
       ? selectedConditions.filter((c) => c !== condition)
       : [...selectedConditions, condition];
-    updateFilters({ condition: newConditions.join(",") });
+    updateFilters({
+      condition: newConditions.length > 0 ? newConditions.join(",") : null,
+    });
   };
 
-  const toggleAttribute = (key, value) => {
+  const toggleAttribute = (key: string, value: string) => {
     const currentValues = selectedAttributes[key] || [];
     const newValues = currentValues.includes(value)
       ? currentValues.filter((v) => v !== value)
       : [...currentValues, value];
 
-    updateFilters({ [key]: newValues.join(",") });
+    updateFilters({
+      [key]: newValues.length > 0 ? newValues.join(",") : null,
+    });
   };
 
   const clearFilters = () => {
@@ -296,8 +307,14 @@ const FilterSidebar = ({
 
         {/* Dynamic Attributes */}
         {Object.entries(attributes).map(([key, values]) => {
-          if (!values || values.length === 0) return null;
-          if (key.toLowerCase() === "color") return null;
+          if (!values || !Array.isArray(values) || values.length === 0)
+            return null;
+          if (
+            key.toLowerCase() === "color" ||
+            key.toLowerCase() === "type" ||
+            key.toLowerCase() === "inventorytype"
+          )
+            return null;
 
           const isOpen = expandedSections[key] !== false;
 
@@ -376,7 +393,7 @@ const FilterSidebar = ({
           </button>
           {expandedSections.brand && (
             <div className="space-y-1">
-              {brands.map((brand) => (
+              {brands.map((brand: string) => (
                 <label
                   key={brand}
                   className="flex items-center space-x-3 cursor-pointer w-full group py-1.5 px-1 rounded-lg hover:bg-gray-50 transition-colors duration-200"

@@ -3,19 +3,46 @@ import clsx from "clsx";
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const ProductVariantSelector = ({ product }) => {
+interface Variant {
+  variantId: string;
+  sku?: string;
+  price: number;
+  condition?: string;
+  attributes?: Record<string, string>;
+  stock: number;
+  conditionDescription?: string;
+}
+
+interface Attribute {
+  _id?: string;
+  name: string;
+  values?: string[];
+}
+
+interface ProductVariantSelectorProps {
+  product: {
+    currrentVariant?: {
+      price?: number;
+    };
+    baseProduct: {
+      variantAttributes: Attribute[];
+    };
+    availableVariants: Variant[];
+    price?: number;
+  };
+}
+
+const ProductVariantSelector: React.FC<ProductVariantSelectorProps> = ({ product }) => {
   const router = useRouter();
   const { price } = product.currrentVariant || {};
   const { variantAttributes = [] } = product.baseProduct;
   const allVariants = product.availableVariants || [];
 
   // --- CONDITION LOGIC ---
-  // Check what conditions are available
   const hasNew = allVariants.some((v) => !v.condition || v.condition === "New");
   const hasUsed = allVariants.some((v) => v.condition && v.condition !== "New");
 
-  // Default to New if available, else Used
-  const [selectedCondition, setSelectedCondition] = useState(
+  const [selectedCondition, setSelectedCondition] = useState<"New" | "Used">(
     hasNew ? "New" : "Used",
   );
 
@@ -28,13 +55,11 @@ const ProductVariantSelector = ({ product }) => {
     }
   }, [allVariants, selectedCondition]);
 
-  // --- EXISTING ATTRIBUTE LOGIC (Applied to filtered 'variants') ---
-  const [selectedAttributes, setSelectedAttributes] = useState({});
+  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
 
   // Initialize with default variant if available (and reset when condition changes)
   useEffect(() => {
     if (variants.length > 0) {
-      // Try to find a variant that matches current selectedAttributes first
       const currentMatch = variants.find((v) =>
         variantAttributes.every(
           (attr) => v.attributes?.[attr.name] === selectedAttributes[attr.name],
@@ -42,14 +67,13 @@ const ProductVariantSelector = ({ product }) => {
       );
 
       if (!currentMatch) {
-        // If no match in this condition, pick the first available one as default
         const defaultVariant = variants[0];
         if (defaultVariant?.attributes) {
           setSelectedAttributes(defaultVariant.attributes);
         }
       }
     }
-  }, [variants, selectedCondition]); // Depend on selectedCondition to reset
+  }, [variants, selectedCondition, variantAttributes]);
 
   const matchingVariant = useMemo(() => {
     if (!variants.length || !variantAttributes.length) return null;
@@ -58,20 +82,16 @@ const ProductVariantSelector = ({ product }) => {
     );
     if (!allSelected) return null;
 
-    // For "New", we expect distinct combinations.
-    // For "Used", there might be multiple items with same attributes (unique units).
-    // We'll return the FIRST match here for price display,
-    // but handle the specific list separately for 'Used'.
     return variants.find((variant) => {
       if (!variant.attributes) return false;
       return variantAttributes.every((attr) => {
-        return variant.attributes[attr.name] === selectedAttributes[attr.name];
+        return variant.attributes?.[attr.name] === selectedAttributes[attr.name];
       });
     });
   }, [selectedAttributes, variants, variantAttributes]);
 
   const getAvailableValues = useMemo(() => {
-    return (attributeName) => {
+    return (attributeName: string) => {
       const otherSelections = { ...selectedAttributes };
       delete otherSelections[attributeName];
       const hasOtherSelections = Object.keys(otherSelections).length > 0;
@@ -81,12 +101,12 @@ const ProductVariantSelector = ({ product }) => {
         validVariants = variants.filter((variant) => {
           if (!variant.attributes) return false;
           return Object.keys(otherSelections).every(
-            (key) => variant.attributes[key] === otherSelections[key],
+            (key) => variant.attributes?.[key] === otherSelections[key],
           );
         });
       }
 
-      const values = new Set();
+      const values = new Set<string>();
       validVariants.forEach((variant) => {
         if (variant.attributes?.[attributeName]) {
           values.add(variant.attributes[attributeName]);
@@ -96,27 +116,24 @@ const ProductVariantSelector = ({ product }) => {
     };
   }, [selectedAttributes, variants]);
 
-  const handleAttributeSelect = (attributeName, value) => {
+  const handleAttributeSelect = (attributeName: string, value: string) => {
     setSelectedAttributes((prev) => ({
       ...prev,
       [attributeName]: value,
     }));
   };
 
-  const handleVariantSelect = (variantId) => {
+  const handleVariantSelect = (variantId: string) => {
     if (variantId) {
       router.replace(`/shop/${variantId}`);
     }
   };
 
-  const isValueAvailable = (attributeName, value) => {
+  const isValueAvailable = (attributeName: string, value: string) => {
     return getAvailableValues(attributeName).includes(value);
   };
 
   const displayPrice = matchingVariant?.price || product?.price || price || 0;
-  // For used items, we might show a range or "From X"
-  const minPrice =
-    variants.length > 0 ? Math.min(...variants.map((v) => v.price)) : 0;
 
   // Find ALL matching unique units for the selected attributes in "Used" mode
   const matchingUniqueUnits = useMemo(() => {
@@ -129,7 +146,7 @@ const ProductVariantSelector = ({ product }) => {
           variant.attributes?.[attr.name] === selectedAttributes[attr.name],
       );
     });
-  }, [variants, selectedCondition, selectedAttributes]);
+  }, [variants, selectedCondition, selectedAttributes, variantAttributes]);
 
   if (!variantAttributes.length || !allVariants.length) {
     return (

@@ -39,10 +39,14 @@ const WishlistPage = () => {
     (state) => state.user,
   );
 
-  const handleAddToCart = (productId?: string, variantId?: string) => {
+  const handleAddToCart = async (
+    productId?: string,
+    variantId?: string,
+  ): Promise<boolean> => {
     if (productId && variantId) {
       router.push(`/shop/${productId}`); // For now redirect to PDP
     }
+    return false;
   };
 
   // Show loading while auth is being checked

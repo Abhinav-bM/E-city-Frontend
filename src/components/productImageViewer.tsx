@@ -1,11 +1,18 @@
 "use client";
-
+import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation, Autoplay } from "swiper/modules";
 
-const ProductImageViewer = ({ product }) => {
+interface ProductImageViewerProps {
+  product: {
+    images?: { url: string }[];
+    name?: string;
+  };
+}
+
+const ProductImageViewer: React.FC<ProductImageViewerProps> = ({ product }) => {
   return (
     <Swiper
       navigation={true}
