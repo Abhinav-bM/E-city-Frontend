@@ -71,13 +71,7 @@ const LoginForm: React.FC = () => {
 
       if (response?.data) {
         const responseData = response.data.data || response.data;
-        const { accessToken, user, xsrfToken } = responseData;
-
-        if (xsrfToken) {
-          import("@/api/httpService").then(({ default: httpService }) => {
-            httpService.defaults.headers.common["X-XSRF-TOKEN"] = xsrfToken;
-          });
-        }
+        const { accessToken, user } = responseData;
 
         if (accessToken) {
           dispatch(setUser({ user, accessToken }));

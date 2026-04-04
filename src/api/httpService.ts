@@ -35,9 +35,18 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Response Interceptor (Handle Errors)
+// Response Interceptor (Handle Success and Errors)
 axiosInstance.interceptors.response.use(
-  (response) => response, // Pass successful response
+  (response) => {
+    // Automatically extract and set CSRF token if present in any successful response
+    const xsrfToken = response.data?.data?.xsrfToken || response.data?.xsrfToken;
+    if (xsrfToken) {
+      axiosInstance.defaults.headers.common["X-XSRF-TOKEN"] = xsrfToken;
+      // Also sync with raw axios for initial session checks
+      axios.defaults.headers.common["X-XSRF-TOKEN"] = xsrfToken;
+    }
+    return response;
+  },
   async (error) => {
     if (error.response) {
       const originalRequest = error.config;
@@ -47,18 +56,12 @@ axiosInstance.interceptors.response.use(
 
         try {
           // Attempt silent token refresh using HttpOnly refresh cookie
-          const refreshRes = await axios.post(
+          // Note: The success interceptor above will automatically update the CSRF header
+          await axios.post(
             `${baseURL}/auth/refresh`,
             {},
             { withCredentials: true },
           );
-
-          const newCsrfToken =
-            refreshRes.data?.data?.xsrfToken || refreshRes.data?.xsrfToken;
-          if (newCsrfToken) {
-            axiosInstance.defaults.headers.common["X-XSRF-TOKEN"] =
-              newCsrfToken;
-          }
 
           // Refresh succeeded — rehydrate user state in Redux
           try {
@@ -77,13 +80,15 @@ axiosInstance.interceptors.response.use(
             // /me failed after refresh — unusual but not fatal for the retry
           }
 
-          // Retry the original request with the new cookie
+          // Retry the original request with the new cookie and updated header
+          originalRequest.headers["X-XSRF-TOKEN"] =
+            axiosInstance.defaults.headers.common["X-XSRF-TOKEN"];
           return axiosInstance(originalRequest);
         } catch (err) {
           // Refresh token also failed — session is truly expired
           storeDispatch?.(logoutAction());
 
-          if (typeof window !== "undefined") {
+          if (typeof window !== "undefined" && !originalRequest._noRedirect) {
             // Don't redirect if already on login page (prevents infinite loop)
             if (!window.location.pathname.startsWith("/login")) {
               window.location.href = "/login";
